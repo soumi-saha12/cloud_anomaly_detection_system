@@ -1,0 +1,24 @@
+
+==================================================
+SYSTEM ANOMALY DETECTION RESULTS
+==================================================
+
+Total Records: 405894
+
+Isolation Forest Anomalies:
+20284
+
+LOF Anomalies:
+11060
+
+Final Ensemble Anomalies:
+30707
+
+Anomaly Percentage:
+7.57 %
+
+Files Generated:
+1. system_anomalies.csv
+2. top_system_anomalies.csv
+
+==================================================
