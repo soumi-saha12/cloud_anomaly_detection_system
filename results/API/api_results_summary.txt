@@ -1,0 +1,33 @@
+
+==================================================
+API ANOMALY DETECTION RESULTS
+==================================================
+
+Total Records: 6851
+
+Isolation Forest Anomalies:
+343
+
+LOF Anomalies:
+329
+
+Final Ensemble Anomalies:
+662
+
+Anomaly Percentage:
+9.66 %
+
+Files Generated:
+1. api_anomalies.csv
+2. api_results_summary.csv
+
+Figures Generated:
+1. Figure_1_Anomaly_Comparison.png
+2. Figure_2_Risk_Score_Distribution.png
+3. Figure_3_IF_Score_Distribution.png
+4. Figure_4_Top20_LOF_Anomalies.png
+5. Figure_5_Feature_Correlation_Heatmap.png
+6. Figure_6_IF_Boxplot.png
+7. Figure_7_anomaly_distribution.png
+
+==================================================

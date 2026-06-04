@@ -1,0 +1,4 @@
+Model,Anomalies,Percentage
+Isolation Forest,343,5.006568384177492
+LOF,329,4.802218654211064
+Ensemble,662,9.662822945555394
