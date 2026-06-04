@@ -1,0 +1,35 @@
+
+==================================================
+CORRELATION ENGINE RESULTS
+==================================================
+
+Authentication Anomalies : 4556
+API Anomalies            : 675
+System Anomalies         : 31579
+
+Authentication Rate (%) : 9.11
+API Rate (%)            : 9.85
+System Rate (%)         : 7.78
+
+Unified Cloud Risk Score : 89.13
+
+Risk Level : CRITICAL
+
+==================================================
+FILES GENERATED
+==================================================
+
+1. correlation_summary.csv
+2. dashboard_data.csv
+
+==================================================
+FIGURES GENERATED
+==================================================
+
+1. anomaly_count_comparison.png
+2. anomaly_percentage_comparison.png
+3. source_contribution_pie.png
+4. cloud_risk_score.png
+5. source_risk_ranking.png
+
+==================================================

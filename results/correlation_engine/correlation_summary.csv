@@ -1,0 +1,4 @@
+Source,Total_Records,Anomaly_Count,Anomaly_Percentage,Cloud_Risk_Score,Risk_Level
+Authentication,50000,4556,9.11,89.13,CRITICAL
+API,6851,675,9.85,89.13,CRITICAL
+System,405894,31579,7.78,89.13,CRITICAL
