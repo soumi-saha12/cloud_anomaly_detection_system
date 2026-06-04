@@ -1,0 +1,17 @@
+
+AUTHENTICATION ANOMALY DETECTION RESULTS
+========================================
+
+Total Records: 50000
+
+Isolation Forest:
+Anomalies Detected: 2500
+Percentage: 5.00%
+
+Local Outlier Factor:
+Anomalies Detected: 2098
+Percentage: 4.20%
+
+Ensemble Detection:
+Anomalies Detected: 4221
+Percentage: 8.44%
