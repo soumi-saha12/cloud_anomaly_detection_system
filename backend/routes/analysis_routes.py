@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, current_app, jsonify, request, abort
 from werkzeug.utils import secure_filename
 
 from services.prediction_service import (
@@ -22,11 +22,7 @@ def analyze():
     }
 
     if not all(uploaded_files.values()):
-        return jsonify(
-            {
-                "error": "Missing required files. Upload auth_file, api_file, and system_file."
-            }
-        ), 400
+        abort(400)
 
     upload_folder = Path(current_app.config["UPLOAD_FOLDER"])
     upload_folder.mkdir(parents=True, exist_ok=True)
