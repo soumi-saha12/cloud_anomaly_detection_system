@@ -1,6 +1,6 @@
 import pandas as pd
 
-from backend.services.model_loader import get_model
+from services.model_loader import get_model
 
 
 def _predict_with_models(csv_path, model_prefix, use_scaler=False):
