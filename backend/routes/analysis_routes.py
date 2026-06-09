@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from flask import Blueprint, current_app, jsonify, request, abort
+from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 
 from services.prediction_service import (
@@ -13,16 +14,24 @@ from services.correlation_engine import generate_incident
 analysis_bp = Blueprint("analysis", __name__)
 
 
-@analysis_bp.post("/analyze")
-def analyze():
-    uploaded_files = {
-        "auth": request.files.get("auth_file"),
-        "api": request.files.get("api_file"),
-        "system": request.files.get("system_file"),
+def _get_uploaded_files() -> dict[str, FileStorage]:
+    auth_file = request.files.get("auth_file")
+    api_file = request.files.get("api_file")
+    system_file = request.files.get("system_file")
+
+    if auth_file is None or api_file is None or system_file is None:
+        abort(400)
+
+    return {
+        "auth": auth_file,
+        "api": api_file,
+        "system": system_file,
     }
 
-    if not all(uploaded_files.values()):
-        abort(400)
+
+@analysis_bp.post("/analyze")
+def analyze():
+    uploaded_files = _get_uploaded_files()
 
     upload_folder = Path(current_app.config["UPLOAD_FOLDER"])
     upload_folder.mkdir(parents=True, exist_ok=True)
