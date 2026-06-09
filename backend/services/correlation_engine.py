@@ -1,9 +1,9 @@
-from backend.services.risk_scoring import (
+from services.risk_scoring import (
     calculate_risk_score,
     generate_risk_level
 )
 
-from backend.services.explanations import (
+from services.explanations import (
     generate_explanations,
     generate_incident_summary
 )
