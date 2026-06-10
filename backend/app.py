@@ -4,6 +4,7 @@ from werkzeug.exceptions import BadRequest, InternalServerError, NotFound
 from config import Config
 from routes.analysis_routes import analysis_bp
 from routes.auth_routes import auth_bp
+from routes.history_routes import history_bp
 from extensions import db, migrate, cors, jwt
 from models.revoked_token import RevokedToken
 import models
@@ -45,6 +46,7 @@ def create_app():
 
     app.register_blueprint(analysis_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(history_bp)
 
     @app.get("/")
     def home():
