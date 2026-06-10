@@ -3,11 +3,19 @@ from werkzeug.exceptions import BadRequest, InternalServerError, NotFound
 
 from config import Config
 from routes.analysis_routes import analysis_bp
+from extensions import db, migrate, cors
+import models
 
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    # Initialize extensions
+    db.init_app(app)
+    migrate.init_app(app, db)
+    cors.init_app(app, resources={r"/*": {"origins": app.config["CORS_ORIGINS"]}})
+
     app.register_blueprint(analysis_bp)
 
     @app.get("/")
