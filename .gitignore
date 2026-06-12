@@ -1,4 +1,20 @@
-# Python
+# macOS
+.DS_Store
+backend/.DS_Store
+
+# Generated uploads
+backend/uploads/
+
+# Local database
+instance/
+*.db
+
+# Frontend build artifacts
+frontend/node_modules/
+frontend/dist/
+
+# Backend virtual environment
+backend/venv/# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -11,3 +27,4 @@ venv/
 .env
 .env.local
 .env.production
+frontend/.vite/
