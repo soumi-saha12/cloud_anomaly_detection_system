@@ -8,9 +8,9 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
-    full_name = db.Column(db.String(100), nullable=False)
+    full_name = db.Column(db.String(100), nullable=True)
     organization = db.Column(db.String(150), nullable=True)
-    role = db.Column(db.String(20), nullable=False, default="analyst")
+    role = db.Column(db.String(20), nullable=False, default="user")
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     last_login = db.Column(db.DateTime, nullable=True)
 

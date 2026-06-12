@@ -1,5 +1,5 @@
 from flask import Flask, jsonify
-from werkzeug.exceptions import BadRequest, InternalServerError, NotFound
+from werkzeug.exceptions import BadRequest, NotFound
 
 from config import Config
 from routes.analysis_routes import analysis_bp
@@ -59,14 +59,6 @@ def create_app():
     @app.errorhandler(NotFound)
     def handle_not_found(error):
         return jsonify({"error": "Route not found"}), 404
-
-    @app.errorhandler(InternalServerError)
-    def handle_internal_server_error(error):
-        return jsonify({"error": "Internal server error"}), 500
-
-    @app.errorhandler(Exception)
-    def handle_unhandled_exception(error):
-        return jsonify({"error": "Internal server error"}), 500
 
     return app
 

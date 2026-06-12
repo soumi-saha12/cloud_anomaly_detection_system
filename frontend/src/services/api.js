@@ -8,6 +8,7 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem(TOKEN_KEY);
+  config.headers = config.headers || {};
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -15,6 +16,11 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+const initialToken = localStorage.getItem(TOKEN_KEY);
+if (initialToken) {
+  api.defaults.headers.common.Authorization = `Bearer ${initialToken}`;
+}
 
 api.interceptors.response.use(
   (response) => response,

@@ -4,10 +4,13 @@ from pathlib import Path
 
 
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
+    SECRET_KEY = os.getenv(
+        "SECRET_KEY",
+        "dev-secure-key-should-be-changed-in-production-0123456789abcdef",
+    )
     BASE_DIR = Path(__file__).resolve().parent
     UPLOAD_FOLDER = BASE_DIR / "uploads"
-    MAX_CONTENT_LENGTH = 50 * 1024 * 1024
+    MAX_CONTENT_LENGTH = 200 * 1024 * 1024
     MODEL_PATHS = {
         "api_if": BASE_DIR.parent / "models" / "API" / "api_if.pkl",
         "api_lof": BASE_DIR.parent / "models" / "API" / "api_lof.pkl",

@@ -9,6 +9,9 @@ class AnalysisRun(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     run_name = db.Column(db.String(200), nullable=True)
     status = db.Column(db.String(20), nullable=False, default="completed")
+    risk_score = db.Column(db.Float, nullable=True)
+    risk_level = db.Column(db.String(20), nullable=True)
+    summary = db.Column(db.Text, nullable=True)
     auth_file_name = db.Column(db.String(255), nullable=False)
     api_file_name = db.Column(db.String(255), nullable=False)
     system_file_name = db.Column(db.String(255), nullable=False)
@@ -32,9 +35,14 @@ class AnalysisRun(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "run_id": self.id,
             "user_id": self.user_id,
             "run_name": self.run_name,
             "status": self.status,
+            "risk_score": self.risk_score,
+            "risk_level": self.risk_level,
+            "summary": self.summary,
+            "timestamp": self.created_at.isoformat() if self.created_at else None,
             "auth_file_name": self.auth_file_name,
             "api_file_name": self.api_file_name,
             "system_file_name": self.system_file_name,

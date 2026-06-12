@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import {
+import api, {
   getProfile,
   login as apiLogin,
   register as apiRegister,
@@ -25,6 +25,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
+    delete api.defaults.headers.common.Authorization;
     setToken(null);
     setUser(null);
     setError("");
@@ -91,6 +92,7 @@ export function AuthProvider({ children }) {
 
       localStorage.setItem(TOKEN_KEY, accessToken);
       setToken(accessToken);
+      api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
 
       const profileUser = await loadProfile();
       return { ...response.data, user: profileUser };
