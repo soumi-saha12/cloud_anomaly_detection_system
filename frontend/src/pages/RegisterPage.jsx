@@ -1,133 +1,307 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
+import { register } from "../services/api";
 
-export default function RegisterPage() {
-  const { register } = useAuth();
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({ full_name: "", organization: "", email: "", password: "" });
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+const COLORS = {
+  bg: "#08080f",
+  card: "#0f0f1a",
+  border: "rgba(167, 139, 250, 0.12)",
+  borderFocus: "rgba(167, 139, 250, 0.5)",
+  accent: "#a78bfa",
+  accentDeep: "#7c3aed",
+  textPrimary: "#e2e0f0",
+  textMuted: "#6b6880",
+  textLabel: "#8a85a0",
+  danger: "#f87171",
+  dangerBg: "rgba(239, 68, 68, 0.12)",
+  dangerBorder: "rgba(239, 68, 68, 0.3)",
+};
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+const FONT = "'Outfit', sans-serif";
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      await register(formData);
-      navigate("/login");
-    } catch (err) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+function ShieldIcon({ size = 28 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center py-10" style={{ background: "linear-gradient(135deg, #0a0e1a 0%, #0f1629 50%, #0a1628 100%)" }}>
-      
-      <div className="absolute inset-0 opacity-10" style={{
-        backgroundImage: "linear-gradient(#1e3a5f 1px, transparent 1px), linear-gradient(90deg, #1e3a5f 1px, transparent 1px)",
-        backgroundSize: "50px 50px"
-      }} />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round">
+      <path d="M12 2.5l7.5 3v6c0 5-3.2 8.7-7.5 10-4.3-1.3-7.5-5-7.5-10v-6l7.5-3z" />
+    </svg>
+  );
+}
 
-      <div className="relative w-full max-w-md px-6">
-        
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl mb-4" style={{ background: "linear-gradient(135deg, #1e3a5f, #2563eb)" }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Create Account</h1>
-          <p className="text-slate-400 text-sm mt-1">Join the Cloud Anomaly Detection platform</p>
-        </div>
-
-        <div className="rounded-2xl p-8 border border-slate-700/50" style={{ background: "rgba(15, 22, 41, 0.8)", backdropFilter: "blur(20px)" }}>
-          
-          {error && (
-            <div className="mb-4 px-4 py-3 rounded-lg text-sm text-red-300 border border-red-500/30" style={{ background: "rgba(239,68,68,0.1)" }}>
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
-              <input
-                type="text"
-                name="full_name"
-                required
-                value={formData.full_name}
-                onChange={handleChange}
-                placeholder="Jane Smith"
-                className="w-full px-4 py-3 rounded-lg text-sm text-white placeholder-slate-500 border border-slate-600/50 outline-none focus:border-blue-500 transition-colors"
-                style={{ background: "rgba(255,255,255,0.05)" }}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Organization</label>
-              <input
-                type="text"
-                name="organization"
-                required
-                value={formData.organization}
-                onChange={handleChange}
-                placeholder="Acme Security Corp"
-                className="w-full px-4 py-3 rounded-lg text-sm text-white placeholder-slate-500 border border-slate-600/50 outline-none focus:border-blue-500 transition-colors"
-                style={{ background: "rgba(255,255,255,0.05)" }}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
-              <input
-                type="email"
-                name="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="analyst@company.com"
-                className="w-full px-4 py-3 rounded-lg text-sm text-white placeholder-slate-500 border border-slate-600/50 outline-none focus:border-blue-500 transition-colors"
-                style={{ background: "rgba(255,255,255,0.05)" }}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
-              <input
-                type="password"
-                name="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-lg text-sm text-white placeholder-slate-500 border border-slate-600/50 outline-none focus:border-blue-500 transition-colors"
-                style={{ background: "rgba(255,255,255,0.05)" }}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-lg font-semibold text-sm text-white transition-all duration-200 disabled:opacity-50"
-              style={{ background: loading ? "#1e3a5f" : "linear-gradient(135deg, #1d4ed8, #2563eb)" }}
-            >
-              {loading ? "Creating account..." : "Create Account"}
-            </button>
-          </form>
-
-          <p className="text-center text-sm text-slate-400 mt-6">
-            Already have an account?{" "}
-            <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
-              Sign in
-            </Link>
-          </p>
-        </div>
-      </div>
+function Field({ label, type, value, onChange, placeholder, autoComplete }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <label style={styles.label}>{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{
+          ...styles.input,
+          borderColor: focused ? COLORS.borderFocus : COLORS.border,
+        }}
+      />
     </div>
   );
 }
+
+export default function RegisterPage() {
+  const navigate = useNavigate();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [btnHover, setBtnHover] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+
+    if (!fullName.trim() || !email.trim() || !password) {
+      setError("Please fill in all fields.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await register({
+        full_name: fullName.trim(),   // ← matches backend data.get("full_name")
+        email: email.trim(),
+        password,
+        organization: "",             // optional field backend accepts
+      });
+
+      // Store the token returned on successful registration
+      if (res.data?.access_token) {
+        localStorage.setItem("access_token", res.data.access_token);
+      }
+
+      navigate("/login", { state: { justRegistered: true } });
+    } catch (err) {
+      setError(
+        err.response?.data?.error ||
+        "Could not create your account. Please try again."
+      );
+      setSubmitting(false);
+    }
+  }
+
+  return (
+	    <div style={styles.page}>
+	      <style>{`
+	        @media (max-width: 480px) {
+	          .reg-card { padding: var(--space-4) var(--space-3) !important; }
+	        }
+	      `}</style>
+
+      <div style={styles.glow} />
+
+      <div style={styles.heroIconWrap}>
+        <ShieldIcon size={32} />
+      </div>
+
+      <h1 style={styles.title}>Create your account</h1>
+      <p style={styles.subtitle}>Sign up for Cloud Anomaly Detection</p>
+
+      <form style={styles.card} className="reg-card" onSubmit={handleSubmit}>
+        {error && <div style={styles.errorBanner}>{error}</div>}
+
+        <Field
+          label="FULL NAME"
+          type="text"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          placeholder="Jane Doe"
+          autoComplete="name"
+        />
+        <Field
+          label="EMAIL ADDRESS"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="analyst@company.com"
+          autoComplete="email"
+        />
+        <Field
+          label="PASSWORD"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="At least 8 characters"
+          autoComplete="new-password"
+        />
+        <Field
+          label="CONFIRM PASSWORD"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Re-enter your password"
+          autoComplete="new-password"
+        />
+
+	        <button
+	          type="submit"
+	          disabled={submitting}
+	          onMouseEnter={() => setBtnHover(true)}
+	          onMouseLeave={() => setBtnHover(false)}
+	          className="interactive-button"
+	          style={{
+	            ...styles.submitBtn,
+	            opacity: submitting ? 0.7 : 1,
+	            cursor: submitting ? "not-allowed" : "pointer",
+	            filter: btnHover && !submitting ? "brightness(1.1)" : "none",
+	            transform: btnHover && !submitting ? "scale(1.02)" : "scale(1)",
+	          }}
+	        >
+          {submitting ? "Creating account…" : "Create Account"}
+        </button>
+
+        <p style={styles.bottomText}>
+          Already have an account?{" "}
+          <Link to="/login" style={styles.bottomLink}>
+            Sign in
+          </Link>
+        </p>
+      </form>
+    </div>
+  );
+}
+
+const styles = {
+  page: {
+    position: "relative",
+    minHeight: "100vh",
+    width: "100%",
+    backgroundColor: COLORS.bg,
+    fontFamily: FONT,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+	    padding: "var(--space-5) var(--space-3)",
+    boxSizing: "border-box",
+    overflow: "hidden",
+  },
+  glow: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    width: 640,
+    height: 640,
+    transform: "translate(-50%, -50%)",
+    background: "radial-gradient(circle, rgba(167,139,250,0.12), transparent 70%)",
+    filter: "blur(10px)",
+    pointerEvents: "none",
+  },
+  heroIconWrap: {
+    position: "relative",
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.accentDeep})`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+	    marginBottom: "var(--space-3)",
+	    boxShadow: "var(--shadow-active)",
+  },
+  title: {
+    position: "relative",
+    fontSize: 28,
+    fontWeight: 600,
+    color: COLORS.textPrimary,
+    margin: 0,
+  },
+  subtitle: {
+    position: "relative",
+    fontSize: 14,
+    fontWeight: 300,
+    color: COLORS.textMuted,
+    marginTop: 8,
+    marginBottom: 36,
+  },
+  card: {
+    position: "relative",
+    width: "100%",
+    maxWidth: 440,
+    backgroundColor: COLORS.card,
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: 20,
+    padding: "40px",
+    boxSizing: "border-box",
+	    boxShadow: "var(--shadow-resting)",
+	    backdropFilter: "var(--blur-layer)",
+  },
+  label: {
+    display: "block",
+    fontSize: 11,
+    fontWeight: 500,
+    letterSpacing: "0.06em",
+    color: COLORS.textLabel,
+    marginBottom: 8,
+  },
+  input: {
+    width: "100%",
+    boxSizing: "border-box",
+    backgroundColor: COLORS.bg,
+    border: "1px solid",
+    borderRadius: 10,
+    padding: "13px 16px",
+    fontSize: 14,
+    fontFamily: FONT,
+    fontWeight: 300,
+    color: COLORS.textPrimary,
+    outline: "none",
+    transition: "border-color 0.15s ease",
+  },
+  errorBanner: {
+    backgroundColor: COLORS.dangerBg,
+    border: `1px solid ${COLORS.dangerBorder}`,
+    color: COLORS.danger,
+    borderRadius: 10,
+    padding: "12px 16px",
+    fontSize: 13,
+    fontWeight: 400,
+    marginBottom: 20,
+  },
+  submitBtn: {
+    width: "100%",
+    border: "none",
+    borderRadius: 10,
+    padding: "14px",
+    marginTop: 8,
+    fontSize: 15,
+    fontWeight: 600,
+    fontFamily: FONT,
+    color: "#ffffff",
+    background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.accentDeep})`,
+	    transition: "var(--transition-button)",
+  },
+  bottomText: {
+    textAlign: "center",
+    marginTop: 24,
+    marginBottom: 0,
+    fontSize: 13,
+    fontWeight: 300,
+    color: COLORS.textMuted,
+  },
+  bottomLink: {
+    color: COLORS.accent,
+    fontWeight: 500,
+    textDecoration: "none",
+  },
+};

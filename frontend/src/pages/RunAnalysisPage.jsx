@@ -1,42 +1,146 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import MainLayout from "../layouts/MainLayout";
+import { useRef, useState } from "react";
 import { runAnalysis } from "../services/api";
+import MainLayout from "../layouts/MainLayout";
+import AnalysisOutput from "../components/AnalysisOutput";
 
-function getErrorMessage(error) {
-  return error.response?.data?.message || error.response?.data?.error || "Analysis failed. Please try again.";
+const COLORS = {
+  bg: "#08080f",
+  card: "#0f0f1a",
+  border: "rgba(167, 139, 250, 0.12)",
+  borderHover: "rgba(167, 139, 250, 0.35)",
+  borderActive: "rgba(167, 139, 250, 0.6)",
+  accent: "#a78bfa",
+  accentDeep: "#7c3aed",
+  textPrimary: "#e2e0f0",
+  textMuted: "#6b6880",
+  textLabel: "#8a85a0",
+  danger: "#f87171",
+  dangerBg: "rgba(239, 68, 68, 0.12)",
+  dangerBorder: "rgba(239, 68, 68, 0.3)",
+};
+
+const FONT = "'Outfit', sans-serif";
+
+const LOG_SLOTS = [
+  { key: "authLog", title: "Authentication Logs", hint: "Login attempts, session events" },
+  { key: "apiLog", title: "API Request Logs", hint: "Request/response telemetry" },
+  { key: "systemLog", title: "System Metrics Logs", hint: "CPU, memory, latency data" },
+];
+
+function generateDefaultRunName() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+
+  return `Analysis ${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
-function FileUploadBox({ label, description, accept, file, onChange }) {
+function UploadIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={COLORS.accent} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 16V4M12 4l-4 4M12 4l4 4" />
+      <path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" />
+    </svg>
+  );
+}
+
+function FileIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={COLORS.accent} strokeWidth="1.6" strokeLinejoin="round">
+      <path d="M7 2.5h7l4 4V20a1 1 0 01-1 1H7a1 1 0 01-1-1V3.5a1 1 0 011-1z" />
+      <path d="M14 2.5V7h4" />
+    </svg>
+  );
+}
+
+function XIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={COLORS.textMuted} strokeWidth="2" strokeLinecap="round">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function Dropzone({ title, hint, file, onSelect, onRemove }) {
+  const inputRef = useRef(null);
+  const [dragOver, setDragOver] = useState(false);
+
+  function handleDrop(e) {
+    e.preventDefault();
+    setDragOver(false);
+    const dropped = e.dataTransfer.files?.[0];
+    if (dropped) onSelect(dropped);
+  }
+
   return (
     <div
-      className="rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition-all duration-200 hover:border-blue-500/50"
-      style={{ borderColor: file ? "#2563eb" : "#1e3a5f", background: file ? "rgba(37,99,235,0.05)" : "rgba(15,22,41,0.5)" }}
-      onClick={() => document.getElementById(`file-${label}`).click()}
+      className="interactive-card"
+      onClick={() => !file && inputRef.current?.click()}
+      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={handleDrop}
+      style={{
+        border: "1.5px dashed",
+        borderColor: file ? COLORS.borderActive : dragOver ? COLORS.borderHover : COLORS.border,
+        backgroundColor: file ? "rgba(167,139,250,0.04)" : "transparent",
+        cursor: file ? "default" : "pointer",
+        borderRadius: 14,
+        padding: "28px 20px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center",
+        minHeight: 160,
+        justifyContent: "center",
+        transition: "border-color 0.2s, background-color 0.2s",
+        boxSizing: "border-box",
+        flex: 1,
+      }}
     >
-      <input id={`file-${label}`} type="file" accept={accept} className="hidden" onChange={onChange} />
-      {file ? (
-        <div>
-          <div className="w-10 h-10 rounded-lg mx-auto mb-3 flex items-center justify-center" style={{ background: "rgba(37,99,235,0.2)" }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          </div>
-          <p className="text-blue-400 text-sm font-medium">{file.name}</p>
-          <p className="text-slate-500 text-xs mt-1">{(file.size / 1024).toFixed(1)} KB</p>
-        </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".csv,.json,.log,.txt"
+        style={{ display: "none" }}
+        onChange={(e) => {
+          const selected = e.target.files?.[0];
+          if (selected) onSelect(selected);
+          e.target.value = "";
+        }}
+      />
+      {!file ? (
+        <>
+          <UploadIcon />
+          <div style={{ fontSize: 14, fontWeight: 500, color: COLORS.textPrimary, marginTop: 12 }}>{title}</div>
+          <div style={{ fontSize: 12, fontWeight: 300, color: COLORS.textMuted, marginTop: 4 }}>{hint}</div>
+          <div style={{ fontSize: 11, fontWeight: 300, color: COLORS.textMuted, marginTop: 10, opacity: 0.7 }}>.csv · .json · .log — up to 10MB</div>
+        </>
       ) : (
-        <div>
-          <div className="w-10 h-10 rounded-lg mx-auto mb-3 flex items-center justify-center" style={{ background: "rgba(30,58,95,0.5)" }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
+        <div style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, textAlign: "left", overflow: "hidden" }}>
+            <FileIcon />
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: COLORS.textPrimary, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</div>
+              <div style={{ fontSize: 11, fontWeight: 300, color: COLORS.textMuted, marginTop: 2 }}>{formatBytes(file.size)}</div>
+            </div>
           </div>
-          <p className="text-slate-300 text-sm font-medium">{label}</p>
-          <p className="text-slate-500 text-xs mt-1">{description}</p>
-          <p className="text-slate-600 text-xs mt-2">Click to upload CSV</p>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+            style={{ background: "none", border: "none", padding: 4, cursor: "pointer", display: "flex", flexShrink: 0 }}
+            aria-label={`Remove ${title}`}
+          >
+            <XIcon />
+          </button>
         </div>
       )}
     </div>
@@ -44,148 +148,165 @@ function FileUploadBox({ label, description, accept, file, onChange }) {
 }
 
 export default function RunAnalysisPage() {
-  const navigate = useNavigate();
   const [runName, setRunName] = useState("");
-  const [files, setFiles] = useState({ auth: null, api: null, system: null });
-  const [loading, setLoading] = useState(false);
+  const [files, setFiles] = useState({ authLog: null, apiLog: null, systemLog: null });
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [btnHover, setBtnHover] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
 
-  const handleFile = (key) => (e) => {
+  const hasAllFiles = files.authLog && files.apiLog && files.systemLog;
+  const canSubmit = hasAllFiles && !submitting;
+
+  function setFile(key, file) {
+    setFiles((prev) => ({ ...prev, [key]: file }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
     setError("");
-    setFiles({ ...files, [key]: e.target.files[0] || null });
-  };
 
-  const handleSubmit = async () => {
-    if (!files.auth || !files.api || !files.system) {
-      setError("Please upload authentication logs, API logs, and system metrics CSV files.");
-      return;
-    }
+    if (!hasAllFiles) { setError("Upload all three log files to begin."); return; }
 
-    setError("");
-    setLoading(true);
-
+    setSubmitting(true);
+    setAnalysisResult(null);
     try {
+      const finalRunName = runName.trim() || generateDefaultRunName();
       const formData = new FormData();
-      if (runName.trim()) {
-        formData.append("run_name", runName.trim());
-      }
-      formData.append("auth_file", files.auth);
-      formData.append("api_file", files.api);
-      formData.append("system_file", files.system);
+      formData.append("run_name", finalRunName);
+      formData.append("auth_file", files.authLog);
+      formData.append("api_file", files.apiLog);
+      formData.append("system_file", files.systemLog);
 
-      const response = await runAnalysis(formData);
-      const runId = response.data?.run_id;
-
-      if (!runId) {
-        throw new Error("Analysis response did not include a run_id.");
-      }
-
-      navigate(`/results/${runId}`, { state: { result: response.data } });
+      const res = await runAnalysis(formData);
+      setAnalysisResult(res.data);
+      setSubmitting(false);
     } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
+      setError(err.response?.data?.error || "Analysis failed to start. Please try again.");
+      setSubmitting(false);
     }
-  };
-
-  const allReady = files.auth && files.api && files.system;
+  }
 
   return (
     <MainLayout>
-      <div className="p-8 max-w-3xl">
+      <div style={{ fontFamily: FONT, padding: "40px 48px", maxWidth: "100%", boxSizing: "border-box" }}>
 
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white">Run Analysis</h1>
-          <p className="text-slate-400 text-sm mt-1">Upload telemetry files to detect cloud anomalies</p>
+        {/* Header */}
+        <div style={{ marginBottom: 32 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 600, color: COLORS.textPrimary, margin: 0 }}>
+            Run New Analysis
+          </h1>
+          <p style={{ fontSize: 14, fontWeight: 300, color: COLORS.textMuted, marginTop: 8, maxWidth: 560 }}>
+            Upload your logs and we'll correlate authentication, API, and system signals automatically.
+          </p>
         </div>
 
-        {/* Run Name */}
-        <div className="rounded-xl p-6 border border-slate-700/50 mb-6" style={{ background: "rgba(15,22,41,0.8)" }}>
-          <label className="block text-sm font-medium text-slate-300 mb-2">Analysis Run Name</label>
+        {/* Form card — full width of content area */}
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            backgroundColor: COLORS.card,
+            border: `1px solid ${COLORS.border}`,
+            borderRadius: 16,
+            padding: "32px 36px",
+            boxSizing: "border-box",
+            width: "100%",
+          }}
+        >
+          {error && (
+            <div style={{
+              backgroundColor: COLORS.dangerBg,
+              border: `1px solid ${COLORS.dangerBorder}`,
+              color: COLORS.danger,
+              borderRadius: 10,
+              padding: "12px 16px",
+              fontSize: 13,
+              fontWeight: 400,
+              marginBottom: 28,
+            }}>
+              {error}
+            </div>
+          )}
+
+          {/* Run name */}
+          <label style={{ display: "block", fontSize: 11, fontWeight: 500, letterSpacing: "0.06em", color: COLORS.textLabel, marginBottom: 8 }}>
+            RUN NAME
+          </label>
           <input
             type="text"
             value={runName}
             onChange={(e) => setRunName(e.target.value)}
-            placeholder="e.g. Production Audit June 2026"
-            className="w-full px-4 py-3 rounded-lg text-sm text-white placeholder-slate-500 border border-slate-600/50 outline-none focus:border-blue-500 transition-colors"
-            style={{ background: "rgba(255,255,255,0.05)" }}
+            placeholder="e.g. Weekly Security Audit"
+            style={{
+              width: "100%",
+              maxWidth: 480,
+              boxSizing: "border-box",
+              backgroundColor: COLORS.bg,
+              border: `1px solid ${COLORS.border}`,
+              borderRadius: 10,
+              padding: "13px 16px",
+              fontSize: 14,
+              fontFamily: FONT,
+              fontWeight: 300,
+              color: COLORS.textPrimary,
+              outline: "none",
+              display: "block",
+            }}
           />
-        </div>
 
-        {/* File Uploads */}
-        <div className="rounded-xl p-6 border border-slate-700/50 mb-6" style={{ background: "rgba(15,22,41,0.8)" }}>
-          <h2 className="text-sm font-semibold text-white mb-4">Upload Telemetry Files</h2>
-          <div className="grid grid-cols-3 gap-4">
-            <FileUploadBox
-              label="Authentication Logs"
-              description="auth_logs.csv"
-              accept=".csv"
-              file={files.auth}
-              onChange={handleFile("auth")}
-            />
-            <FileUploadBox
-              label="API Activity Logs"
-              description="api_logs.csv"
-              accept=".csv"
-              file={files.api}
-              onChange={handleFile("api")}
-            />
-            <FileUploadBox
-              label="System Metrics"
-              description="system_metrics.csv"
-              accept=".csv"
-              file={files.system}
-              onChange={handleFile("system")}
-            />
-          </div>
-        </div>
-
-        {/* Status */}
-        <div className="rounded-xl p-4 border border-slate-700/50 mb-6" style={{ background: "rgba(15,22,41,0.8)" }}>
-          <div className="flex items-center gap-6">
-            {[
-              { label: "Run Name", done: !!runName, optional: true },
-              { label: "Auth Logs", done: !!files.auth },
-              { label: "API Logs", done: !!files.api },
-              { label: "System Metrics", done: !!files.system },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full flex items-center justify-center" style={{ background: item.done ? "rgba(34,197,94,0.2)" : "rgba(100,116,139,0.2)" }}>
-                  {item.done
-                    ? <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                    : <div className="w-1.5 h-1.5 rounded-full bg-slate-600" />
-                  }
-                </div>
-                <span className="text-xs" style={{ color: item.done ? "#22c55e" : "#64748b" }}>
-                  {item.label}{item.optional && !item.done ? " (optional)" : ""}
-                </span>
-              </div>
+          {/* Dropzone row */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 16,
+            marginTop: 28,
+          }}>
+            {LOG_SLOTS.map((slot) => (
+              <Dropzone
+                key={slot.key}
+                title={slot.title}
+                hint={slot.hint}
+                file={files[slot.key]}
+                onSelect={(f) => setFile(slot.key, f)}
+                onRemove={() => setFile(slot.key, null)}
+              />
             ))}
           </div>
-        </div>
 
-        {error && (
-          <div className="mb-4 px-4 py-3 rounded-lg text-sm text-red-300 border border-red-500/30" style={{ background: "rgba(239,68,68,0.1)" }}>
-            {error}
+          {/* Submit */}
+          <div style={{ marginTop: 28 }}>
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              onMouseEnter={() => setBtnHover(true)}
+              onMouseLeave={() => setBtnHover(false)}
+              style={{
+                border: "none",
+                borderRadius: 10,
+                padding: "14px 36px",
+                fontSize: 15,
+                fontWeight: 600,
+                fontFamily: FONT,
+                color: "#ffffff",
+                background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.accentDeep})`,
+                opacity: canSubmit ? 1 : 0.5,
+                cursor: canSubmit ? "pointer" : "not-allowed",
+                filter: btnHover && canSubmit ? "brightness(1.1)" : "none",
+                transform: btnHover && canSubmit ? "scale(1.02)" : "scale(1)",
+                transition: "filter 0.15s, transform 0.15s, opacity 0.15s",
+              }}
+            >
+              {submitting ? "Running analysis…" : "Start Analysis"}
+            </button>
+          </div>
+        </form>
+
+        {/* Results */}
+        {analysisResult && (
+          <div style={{ marginTop: 40 }}>
+            <AnalysisOutput result={analysisResult} runId={analysisResult.run_id || analysisResult.id} />
           </div>
         )}
-
-        <button
-          onClick={handleSubmit}
-          disabled={!allReady || loading}
-          className="px-8 py-3 rounded-lg font-semibold text-sm text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{ background: allReady && !loading ? "linear-gradient(135deg, #1d4ed8, #2563eb)" : "#1e3a5f" }}
-        >
-          {loading ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-              </svg>
-              Running Analysis...
-            </span>
-          ) : "Run Analysis"}
-        </button>
-
       </div>
     </MainLayout>
   );

@@ -3,7 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 
 const navItems = [
   {
-    path: "/",
+    path: "/dashboard",
     label: "Dashboard",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -30,6 +30,15 @@ const navItems = [
       </svg>
     ),
   },
+  {
+    path: "/about",
+    label: "About",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+      </svg>
+    ),
+  },
 ];
 
 export default function MainLayout({ children }) {
@@ -43,62 +52,157 @@ export default function MainLayout({ children }) {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: "#0a0e1a" }}>
-      
-      {/* Sidebar */}
-      <aside className="w-60 flex-shrink-0 flex flex-col border-r border-slate-700/50" style={{ background: "rgba(10,14,26,0.95)" }}>
-        
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--bg-base)" }}>
+
+      {/* Sidebar — fixed 220px, no flex shrink */}
+      <aside style={{
+        width: "220px",
+        minWidth: "220px",
+        maxWidth: "220px",
+        flexShrink: 0,
+        display: "flex",
+        flexDirection: "column",
+        background: "#050508",
+        borderRight: "1px solid rgba(167,139,250,0.1)",
+        zIndex: 10,
+      }}>
+
         {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-700/50">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #1e3a5f, #2563eb)" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2">
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          padding: "20px 16px",
+          borderBottom: "1px solid rgba(167,139,250,0.08)",
+        }}>
+          <div style={{
+            width: "32px", height: "32px", borderRadius: "8px",
+            background: "#7c3aed",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
           </div>
-          <div>
-            <p className="text-white text-sm font-semibold leading-tight">Cloud Anomaly</p>
-            <p className="text-slate-500 text-xs">Detection System</p>
-          </div>
+          <span style={{
+            fontSize: "13px",
+            fontWeight: 500,
+            color: "#a78bfa",
+            lineHeight: 1.3,
+            fontFamily: "'Outfit', sans-serif",
+          }}>
+            Cloud Anomaly<br/>Detection
+          </span>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        <nav style={{ flex: 1, padding: "16px 12px", display: "flex", flexDirection: "column", gap: "4px" }}>
           {navItems.map((item) => {
-            const active = location.pathname === item.path;
+            const active = location.pathname === item.path ||
+              (item.path === "/dashboard" && location.pathname.startsWith("/results"));
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150"
                 style={{
-                  color: active ? "#60a5fa" : "#94a3b8",
-                  background: active ? "rgba(37,99,235,0.15)" : "transparent",
-                  borderLeft: active ? "2px solid #2563eb" : "2px solid transparent",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "10px 14px",
+                  borderRadius: "10px",
+                  fontSize: "13px",
+                  fontWeight: active ? 500 : 400,
+                  color: active ? "#a78bfa" : "#6b6880",
+                  background: active ? "rgba(167,139,250,0.08)" : "transparent",
+                  borderLeft: active ? "2px solid #a78bfa" : "2px solid transparent",
+                  textDecoration: "none",
+                  transition: "var(--transition-nav)",
+                  fontFamily: "'Outfit', sans-serif",
+                }}
+                onMouseEnter={e => {
+                  if (!active) {
+                    e.currentTarget.style.color = "#e2e0f0";
+                    e.currentTarget.style.background = "rgba(167,139,250,0.05)";
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!active) {
+                    e.currentTarget.style.color = "#6b6880";
+                    e.currentTarget.style.background = "transparent";
+                  }
                 }}
               >
-                {item.icon}
+                <span style={{ color: active ? "#a78bfa" : "#6b6880", flexShrink: 0 }}>{item.icon}</span>
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        {/* User info + logout */}
-        <div className="px-4 py-4 border-t border-slate-700/50">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ background: "linear-gradient(135deg, #1d4ed8, #2563eb)" }}>
-              {user?.full_name?.charAt(0)?.toUpperCase() || "U"}
+        {/* User footer */}
+        <div style={{
+          padding: "16px",
+          borderTop: "1px solid rgba(167,139,250,0.08)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{
+              width: "36px", height: "36px", borderRadius: "10px",
+              background: "#7c3aed",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "14px", fontWeight: 600, color: "white",
+              flexShrink: 0,
+            }}>
+              {user?.full_name?.charAt(0)?.toUpperCase() || "A"}
             </div>
-            <div className="min-w-0">
-              <p className="text-white text-xs font-medium truncate">{user?.full_name || "User"}</p>
-              <p className="text-slate-500 text-xs truncate">{user?.organization || ""}</p>
+            <div style={{ minWidth: 0 }}>
+              <p style={{
+                fontSize: "13px", fontWeight: 500, color: "#e2e0f0",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                fontFamily: "'Outfit', sans-serif",
+              }}>
+                {user?.full_name || "Analyst"}
+              </p>
+              <p style={{
+                fontSize: "11px", color: "#6b6880",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                fontFamily: "'Outfit', sans-serif",
+              }}>
+                {user?.organization || "SOC Operations"}
+              </p>
             </div>
           </div>
+
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-150"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              gap: "8px", padding: "8px",
+              borderRadius: "8px",
+              border: "1px solid rgba(167,139,250,0.12)",
+              background: "transparent",
+              color: "#6b6880",
+              fontSize: "12px", fontWeight: 400,
+              cursor: "pointer",
+                  transition: "var(--transition-button)",
+              fontFamily: "'Outfit', sans-serif",
+              width: "100%",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.color = "#f87171";
+              e.currentTarget.style.borderColor = "rgba(248,113,113,0.3)";
+              e.currentTarget.style.background = "rgba(248,113,113,0.05)";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.color = "#6b6880";
+              e.currentTarget.style.borderColor = "rgba(167,139,250,0.12)";
+              e.currentTarget.style.background = "transparent";
+            }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
               <polyline points="16 17 21 12 16 7"/>
               <line x1="21" y1="12" x2="9" y2="12"/>
@@ -108,9 +212,36 @@ export default function MainLayout({ children }) {
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto">
-        {children}
+      {/* Main content — takes all remaining space */}
+      <main style={{
+        flex: 1,
+        minWidth: 0,
+        width: "100%",
+        overflowY: "auto",
+        background: "var(--bg-base)",
+        display: "flex",
+        flexDirection: "column",
+      }}>
+        <div style={{ width: "100%", flex: 1 }}>{children}</div>
+	        <footer style={{
+	          padding: "var(--space-2) var(--page-padding-inline)",
+	          borderTop: "1px solid rgba(167,139,250,0.08)",
+	        }}>
+	          <div className="app-page-container" style={{
+	            display: "flex",
+	            alignItems: "center",
+	            justifyContent: "space-between",
+	            flexWrap: "wrap",
+	            gap: "var(--space-1)",
+	          }}>
+	            <span style={{ fontSize: 12, fontWeight: 300, color: "#6b6880", fontFamily: "'Outfit', sans-serif" }}>
+	              © 2026 Cloud Anomaly Detection. All rights reserved.
+	            </span>
+	            <span style={{ fontSize: 12, fontWeight: 300, color: "#6b6880", fontFamily: "'Outfit', sans-serif" }}>
+	              Built for cloud security teams.
+	            </span>
+	          </div>
+	        </footer>
       </main>
     </div>
   );

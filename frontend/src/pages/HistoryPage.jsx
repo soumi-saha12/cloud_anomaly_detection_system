@@ -1,51 +1,126 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import MainLayout from "../layouts/MainLayout";
 import { getHistory } from "../services/api";
+import MainLayout from "../layouts/MainLayout";
+import { getAnomalyCount } from "../utils/anomalyCounts";
 
-const riskColors = {
-  CRITICAL: { bg: "rgba(239,68,68,0.15)", text: "#ef4444", border: "rgba(239,68,68,0.3)" },
-  HIGH: { bg: "rgba(249,115,22,0.15)", text: "#f97316", border: "rgba(249,115,22,0.3)" },
-  MEDIUM: { bg: "rgba(234,179,8,0.15)", text: "#eab308", border: "rgba(234,179,8,0.3)" },
-  LOW: { bg: "rgba(34,197,94,0.15)", text: "#22c55e", border: "rgba(34,197,94,0.3)" },
-  UNKNOWN: { bg: "rgba(100,116,139,0.15)", text: "#94a3b8", border: "rgba(100,116,139,0.3)" },
+const COLORS = {
+  bg: "#08080f",
+  card: "#0f0f1a",
+  cardHover: "#12121f",
+  border: "rgba(167, 139, 250, 0.12)",
+  borderHover: "rgba(167, 139, 250, 0.35)",
+  accent: "#a78bfa",
+  textPrimary: "#e2e0f0",
+  textMuted: "#6b6880",
+  pillBg: "#08080f",
 };
 
-function getErrorMessage(error) {
-  return error.response?.data?.message || error.response?.data?.error || "Unable to load analysis history.";
+const FONT = "'Outfit', sans-serif";
+
+const RISK_STYLES = {
+  CRITICAL: { bg: "rgba(239,68,68,0.15)", color: "#f87171" },
+  HIGH: { bg: "rgba(251,146,60,0.15)", color: "#fb923c" },
+  MEDIUM: { bg: "rgba(250,204,21,0.15)", color: "#fbbf24" },
+  LOW: { bg: "rgba(74,222,128,0.15)", color: "#4ade80" },
+  UNKNOWN: { bg: "rgba(167,139,250,0.15)", color: "#a78bfa" },
+};
+
+const STATUS_STYLES = {
+  completed: { bg: "rgba(74,222,128,0.15)", color: "#4ade80", label: "Completed" },
+  failed: { bg: "rgba(239,68,68,0.15)", color: "#f87171", label: "Failed" },
+};
+
+function mapRun(raw) {
+  return {
+    id: raw.id || raw.run_id,
+    name: raw.name || raw.run_name || "Untitled run",
+    date: raw.created_at,
+    riskScore: raw.risk_score ?? null,
+    riskLevel: (raw.risk_level || "UNKNOWN").toUpperCase(),
+    status: raw.status === "failed" ? "failed" : "completed",
+    authCount: getAnomalyCount(raw, "auth"),
+    apiCount: getAnomalyCount(raw, "api"),
+    systemCount: getAnomalyCount(raw, "system"),
+  };
 }
 
-function getRiskLevel(score) {
-  if (score >= 80) return "CRITICAL";
-  if (score >= 60) return "HIGH";
-  if (score >= 35) return "MEDIUM";
-  if (score > 0) return "LOW";
-  return "UNKNOWN";
+function formatDate(iso) {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      month: "short", day: "numeric", year: "numeric",
+      hour: "numeric", minute: "2-digit",
+    });
+  } catch { return iso; }
 }
 
-function RiskBadge({ level }) {
-  const color = riskColors[level] || riskColors.UNKNOWN;
-
+function ClipboardIcon({ size = 40 }) {
   return (
-    <span className="px-2 py-1 rounded text-xs font-medium border" style={{ background: color.bg, color: color.text, borderColor: color.border }}>
-      {level}
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={COLORS.textMuted} strokeWidth="1.4">
+      <rect x="6" y="3.5" width="12" height="17" rx="2" />
+      <path d="M9 3.5h6v2.5H9z" />
+      <path d="M9 11h6M9 14.5h6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function Pill({ label, count }) {
+  return (
+    <span style={styles.pill}>
+      {label} <span style={{ color: COLORS.textPrimary, fontWeight: 500 }}>{count}</span>
     </span>
   );
 }
 
-function LoadingState() {
+function RiskBadge({ level }) {
+  const s = RISK_STYLES[level] || RISK_STYLES.UNKNOWN;
+  return <span style={{ ...styles.badge, backgroundColor: s.bg, color: s.color }}>{level}</span>;
+}
+
+function StatusChip({ status }) {
+  const s = STATUS_STYLES[status];
+  return <span style={{ ...styles.badge, backgroundColor: s.bg, color: s.color }}>{s.label}</span>;
+}
+
+function RunCard({ run, onClick }) {
+  const [hovered, setHovered] = useState(false);
   return (
-    <MainLayout>
-      <div className="min-h-full p-8 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-10 h-10 rounded-lg mx-auto mb-4 flex items-center justify-center" style={{ background: "rgba(37,99,235,0.15)" }}>
-            <div className="w-4 h-4 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
-          </div>
-          <h1 className="text-lg font-semibold text-white">Loading history</h1>
-          <p className="text-sm text-slate-400 mt-2">Fetching saved analysis runs...</p>
+	    <div
+	      className="history-run-card"
+	      role="button" tabIndex={0}
+	      onClick={onClick}
+	      onKeyDown={(e) => {
+	        if (e.key === "Enter" || e.key === " ") {
+	          e.preventDefault();
+	          onClick();
+	        }
+	      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+	      style={{
+	        ...styles.runCard,
+	        borderColor: hovered ? COLORS.borderHover : COLORS.border,
+	        backgroundColor: hovered ? COLORS.cardHover : COLORS.card,
+	        boxShadow: hovered ? "var(--shadow-hover)" : "var(--shadow-resting)",
+	        transform: hovered ? "translateY(-2px)" : "translateY(0)",
+	      }}
+	    >
+      <div style={styles.cardLeft}>
+        <div style={styles.runName}>{run.name}</div>
+        <div style={styles.runDate}>{formatDate(run.date)}</div>
+        <div style={styles.pillRow}>
+          <Pill label="Auth" count={run.authCount} />
+          <Pill label="API" count={run.apiCount} />
+          <Pill label="System" count={run.systemCount} />
         </div>
       </div>
-    </MainLayout>
+      <div style={styles.cardRight}>
+        <div style={styles.riskScore}>{run.riskScore ?? "—"}</div>
+        <RiskBadge level={run.riskLevel} />
+        <StatusChip status={run.status} />
+      </div>
+    </div>
   );
 }
 
@@ -56,108 +131,102 @@ export default function HistoryPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    let active = true;
-
-    async function loadHistory() {
+    let cancelled = false;
+    async function load() {
       setLoading(true);
       setError("");
-
       try {
-        const response = await getHistory();
-        const history = response.data?.history || response.data?.runs || response.data || [];
-
-        if (active) {
-          setRuns(Array.isArray(history) ? history : []);
-        }
-      } catch (err) {
-        if (active) {
-          setError(getErrorMessage(err));
-        }
+        const res = await getHistory();
+        const data = res.data;
+        const list = Array.isArray(data) ? data : data.history || data.runs || [];
+        if (!cancelled) setRuns(list.map(mapRun));
+      } catch {
+        if (!cancelled) setError("Could not load history. Is the backend running?");
       } finally {
-        if (active) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
-
-    loadHistory();
-
-    return () => {
-      active = false;
-    };
+    load();
+    return () => { cancelled = true; };
   }, []);
 
-  if (loading) {
-    return <LoadingState />;
-  }
+  const total = runs.length;
+  const completed = runs.filter((r) => r.status === "completed").length;
+  const failed = runs.filter((r) => r.status === "failed").length;
 
-  if (error) {
-    return (
-      <MainLayout>
-        <div className="p-8">
-          <div className="rounded-xl p-5 border border-red-500/30 text-red-300" style={{ background: "rgba(239,68,68,0.1)" }}>
-            {error}
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
+	  return (
+	    <MainLayout>
+	      <div className="app-page-shell" style={styles.page}>
+	        <div className="app-page-container">
+	          <div style={styles.header}>
+	            <h1 style={styles.title}>Audit Log History</h1>
+	            <p style={styles.subtitle}>All your past anomaly detection runs in one place.</p>
+	          </div>
 
-  return (
-    <MainLayout>
-      <div className="p-8 space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Analysis History</h1>
-          <p className="text-slate-400 text-sm mt-1">Review previous cloud anomaly detection runs</p>
-        </div>
+	          {!loading && !error && total > 0 && (
+	            <div style={styles.summaryBar}>
+	              <div style={styles.summaryStat}>
+	                <span style={styles.summaryNumber}>{total}</span>
+	                <span style={styles.summaryLabel}>Total Runs</span>
+	              </div>
+	              <div style={styles.divider} />
+	              <div style={styles.summaryStat}>
+	                <span style={{ ...styles.summaryNumber, color: "#4ade80" }}>{completed}</span>
+	                <span style={styles.summaryLabel}>Completed</span>
+	              </div>
+	              <div style={styles.divider} />
+	              <div style={styles.summaryStat}>
+	                <span style={{ ...styles.summaryNumber, color: "#f87171" }}>{failed}</span>
+	                <span style={styles.summaryLabel}>Failed</span>
+	              </div>
+	            </div>
+	          )}
 
-        <div className="rounded-xl border border-slate-700/50 overflow-hidden" style={{ background: "rgba(15,22,41,0.8)" }}>
-          <div className="px-5 py-4 border-b border-slate-700/50">
-            <h2 className="text-sm font-semibold text-white">Saved Runs</h2>
-          </div>
+	          {loading && <p style={styles.statusText}>Loading history…</p>}
+	          {!loading && error && <p style={{ ...styles.statusText, color: "#f87171" }}>{error}</p>}
 
-          {runs.length > 0 ? (
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-700/30">
-                  <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase tracking-wider">Run Name</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase tracking-wider">Timestamp</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase tracking-wider">Risk Score</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase tracking-wider">Risk Level</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase tracking-wider">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {runs.map((run) => {
-                  const runId = run.run_id || run.id;
-                  const score = Number(run.risk_score ?? 0);
-                  const level = run.risk_level || getRiskLevel(score);
-                  const color = riskColors[level] || riskColors.UNKNOWN;
+	          {!loading && !error && total === 0 && (
+	            <div style={styles.emptyState}>
+	              <ClipboardIcon size={48} />
+	              <p style={styles.emptyTitle}>No analysis runs yet</p>
+	              <p style={styles.emptySubtitle}>Run your first analysis to see results here</p>
+	            </div>
+	          )}
 
-                  return (
-                    <tr
-                      key={runId}
-                      onClick={() => navigate(`/results/${runId}`)}
-                      className="border-b border-slate-700/20 hover:bg-white/5 transition-colors cursor-pointer"
-                    >
-                      <td className="px-5 py-3 text-sm text-white">{run.run_name || `Run #${runId}`}</td>
-                      <td className="px-5 py-3 text-sm text-slate-400">{run.created_at || run.timestamp || "-"}</td>
-                      <td className="px-5 py-3 text-sm font-mono" style={{ color: color.text }}>{score.toFixed(1)}</td>
-                      <td className="px-5 py-3"><RiskBadge level={level} /></td>
-                      <td className="px-5 py-3 text-sm text-slate-300">{run.status || "-"}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          ) : (
-            <div className="px-5 py-10 text-center">
-              <h2 className="text-white font-semibold">No runs available</h2>
-              <p className="text-slate-400 text-sm mt-2">Run an analysis to start building your history.</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </MainLayout>
-  );
+	          {!loading && !error && total > 0 && (
+	            <div>
+	              {runs.map((run) => (
+	                <RunCard key={run.id} run={run} onClick={() => navigate(`/results/${run.id}`)} />
+	              ))}
+	            </div>
+	          )}
+	        </div>
+	      </div>
+	    </MainLayout>
+	  );
 }
+
+const styles = {
+  page: { fontFamily: FONT },
+  header: { marginBottom: "var(--space-4)" },
+  title: { fontSize: 28, fontWeight: 600, color: COLORS.textPrimary, margin: 0 },
+  subtitle: { fontSize: 14, fontWeight: 300, color: COLORS.textMuted, marginTop: 6 },
+  summaryBar: { display: "flex", alignItems: "center", gap: "var(--space-3)", marginBottom: "var(--space-4)", padding: "var(--space-2) var(--space-3)", backgroundColor: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 14, width: "fit-content", boxShadow: "var(--shadow-resting)" },
+  summaryStat: { display: "flex", alignItems: "baseline", gap: 8 },
+  summaryNumber: { fontSize: 20, fontWeight: 600, color: COLORS.textPrimary },
+  summaryLabel: { fontSize: 13, fontWeight: 300, color: COLORS.textMuted },
+  divider: { width: 1, height: 20, backgroundColor: COLORS.border },
+  statusText: { fontSize: 14, fontWeight: 300, color: COLORS.textMuted },
+  emptyState: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "var(--space-6) var(--space-3)", border: `1px solid ${COLORS.border}`, borderRadius: 16, backgroundColor: COLORS.card, boxShadow: "var(--shadow-resting)" },
+  emptyTitle: { fontSize: 16, fontWeight: 400, color: COLORS.textMuted, marginTop: 20, marginBottom: 4 },
+  emptySubtitle: { fontSize: 13, fontWeight: 300, color: COLORS.textMuted, margin: 0, opacity: 0.8 },
+  runCard: { border: "1px solid", borderRadius: 16, padding: "var(--space-3) var(--space-4)", marginBottom: "var(--space-2)", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", transition: "var(--transition-row)", boxSizing: "border-box" },
+  cardLeft: { display: "flex", flexDirection: "column" },
+  runName: { fontSize: 18, fontWeight: 500, color: COLORS.textPrimary },
+  runDate: { fontSize: 13, fontWeight: 300, color: COLORS.textMuted, marginTop: 4 },
+  pillRow: { display: "flex", gap: 8, marginTop: 12 },
+  pill: { fontSize: 12, fontWeight: 300, color: COLORS.textMuted, backgroundColor: COLORS.pillBg, border: `1px solid ${COLORS.border}`, borderRadius: 999, padding: "4px 10px" },
+  cardRight: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0, marginLeft: 24 },
+  riskScore: { fontSize: 28, fontWeight: 600, color: COLORS.accent, lineHeight: 1 },
+  badge: { fontSize: 11, fontWeight: 500, letterSpacing: "0.04em", borderRadius: 999, padding: "4px 10px" },
+};

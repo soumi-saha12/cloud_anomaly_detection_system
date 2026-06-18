@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [btnHover, setBtnHover] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,93 +17,181 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid credentials. Please try again.");
+      setError(err.response?.data?.message || err.response?.data?.error || "Invalid credentials. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  const inputStyle = {
+    width: "100%",
+    padding: "12px 16px",
+    borderRadius: "10px",
+    border: "1px solid rgba(167,139,250,0.2)",
+    background: "#0a0a14",
+    color: "#e2e0f0",
+    fontSize: "14px",
+    fontFamily: "'Outfit', sans-serif",
+    fontWeight: 400,
+    outline: "none",
+    transition: "border-color 0.15s ease",
+    boxSizing: "border-box",
+  };
+
+  const labelStyle = {
+    display: "block",
+    fontSize: "11px",
+    fontWeight: 500,
+    color: "#6b6880",
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
+    marginBottom: "8px",
+    fontFamily: "'Outfit', sans-serif",
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #0a0e1a 0%, #0f1629 50%, #0a1628 100%)" }}>
-      
-      {/* Background grid effect */}
-      <div className="absolute inset-0 opacity-10" style={{
-        backgroundImage: "linear-gradient(#1e3a5f 1px, transparent 1px), linear-gradient(90deg, #1e3a5f 1px, transparent 1px)",
-        backgroundSize: "50px 50px"
+    <div style={{
+      minHeight: "100vh",
+      background: "#08080f",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "24px",
+      position: "relative",
+      overflow: "hidden",
+    }}>
+
+      {/* Subtle glow */}
+      <div style={{
+        position: "absolute",
+        top: "30%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: "600px",
+        height: "400px",
+        background: "radial-gradient(ellipse, rgba(124,58,237,0.08) 0%, transparent 70%)",
+        pointerEvents: "none",
       }} />
 
-      <div className="relative w-full max-w-md px-6">
-        
-        {/* Logo / Title */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl mb-4" style={{ background: "linear-gradient(135deg, #1e3a5f, #2563eb)" }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2">
+      <div style={{ width: "100%", maxWidth: "400px", position: "relative" }}>
+
+        {/* Logo */}
+        <div style={{ textAlign: "center", marginBottom: "32px" }}>
+          <Link to="/" style={{
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            width: "52px", height: "52px", borderRadius: "14px",
+            background: "linear-gradient(135deg, #a78bfa, #7c3aed)",
+            marginBottom: "16px",
+            boxShadow: "0 8px 24px rgba(124,58,237,0.25)",
+            textDecoration: "none",
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Cloud Anomaly Detection</h1>
-          <p className="text-slate-400 text-sm mt-1">Sign in to your SOC dashboard</p>
+          </Link>
+          <h1 style={{
+            fontSize: "22px", fontWeight: 600, color: "#e2e0f0",
+            fontFamily: "'Outfit', sans-serif", display: "block",
+          }}>
+            Welcome back
+          </h1>
+          <p style={{
+            fontSize: "13px", color: "#6b6880", marginTop: "6px",
+            fontFamily: "'Outfit', sans-serif",
+          }}>
+            Sign in to Cloud Anomaly Detection
+          </p>
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl p-8 border border-slate-700/50" style={{ background: "rgba(15, 22, 41, 0.8)", backdropFilter: "blur(20px)" }}>
-          
+        <div style={{
+          background: "#0f0f1a",
+          border: "1px solid rgba(167,139,250,0.14)",
+          borderRadius: "20px",
+          padding: "32px",
+          boxShadow: "var(--shadow-resting)",
+          backdropFilter: "var(--blur-layer)",
+        }}>
+
           {error && (
-            <div className="mb-4 px-4 py-3 rounded-lg text-sm text-red-300 border border-red-500/30" style={{ background: "rgba(239,68,68,0.1)" }}>
+            <div style={{
+              padding: "12px 16px", borderRadius: "10px", marginBottom: "20px",
+              background: "rgba(248,113,113,0.08)",
+              border: "1px solid rgba(248,113,113,0.25)",
+              color: "#f87171", fontSize: "13px",
+              fontFamily: "'Outfit', sans-serif",
+            }}>
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
+              <label style={labelStyle}>Email Address</label>
               <input
                 type="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 placeholder="analyst@company.com"
-                className="w-full px-4 py-3 rounded-lg text-sm text-white placeholder-slate-500 border border-slate-600/50 outline-none focus:border-blue-500 transition-colors"
-                style={{ background: "rgba(255,255,255,0.05)" }}
+                style={inputStyle}
+                onFocus={e => e.target.style.borderColor = "#a78bfa"}
+                onBlur={e => e.target.style.borderColor = "rgba(167,139,250,0.2)"}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
+              <label style={labelStyle}>Password</label>
               <input
                 type="password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-lg text-sm text-white placeholder-slate-500 border border-slate-600/50 outline-none focus:border-blue-500 transition-colors"
-                style={{ background: "rgba(255,255,255,0.05)" }}
+                style={inputStyle}
+                onFocus={e => e.target.style.borderColor = "#a78bfa"}
+                onBlur={e => e.target.style.borderColor = "rgba(167,139,250,0.2)"}
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-lg font-semibold text-sm text-white transition-all duration-200 disabled:opacity-50"
-              style={{ background: loading ? "#1e3a5f" : "linear-gradient(135deg, #1d4ed8, #2563eb)" }}
+              onMouseEnter={() => setBtnHover(true)}
+              onMouseLeave={() => setBtnHover(false)}
+              className="interactive-button"
+              style={{
+                width: "100%", padding: "13px",
+                borderRadius: "10px", border: "none",
+                background: loading ? "rgba(124,58,237,0.5)" : "linear-gradient(135deg, #a78bfa, #7c3aed)",
+                color: "white", fontSize: "14px", fontWeight: 500,
+                cursor: loading ? "not-allowed" : "pointer",
+                fontFamily: "'Outfit', sans-serif",
+                boxShadow: loading ? "none" : "var(--shadow-active)",
+                transition: "var(--transition-button)",
+                filter: btnHover && !loading ? "brightness(1.1)" : "none",
+                transform: btnHover && !loading ? "scale(1.02)" : "scale(1)",
+                marginTop: "4px",
+              }}
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
-          <p className="text-center text-sm text-slate-400 mt-6">
+          <p style={{
+            textAlign: "center", marginTop: "24px",
+            fontSize: "13px", color: "#6b6880",
+            fontFamily: "'Outfit', sans-serif",
+          }}>
             Don't have an account?{" "}
-            <Link to="/register" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+            <Link to="/register" style={{ color: "#a78bfa", textDecoration: "none", fontWeight: 500 }}>
               Create account
             </Link>
           </p>
         </div>
 
-        <p className="text-center text-xs text-slate-600 mt-6">
-          Cloud Security Analytics Platform
-        </p>
       </div>
     </div>
   );
