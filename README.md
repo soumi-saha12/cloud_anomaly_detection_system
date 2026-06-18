@@ -414,8 +414,9 @@ to identify suspicious activity patterns, abnormal resource behavior, and potent
 
 ## 👥 Contributors
 
-- Soumi Saha
-- Add additional contributors here
+- Rupsha Debnath
+- Soumili Saha
+- Srijeeta Dutta
 
 ---
 
