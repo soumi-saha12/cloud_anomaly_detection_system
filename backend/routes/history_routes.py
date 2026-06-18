@@ -7,6 +7,17 @@ from models.incident import Incident
 history_bp = Blueprint("history", __name__)
 
 
+def _source_breakdown(run):
+    return {
+        result.source_type: {
+            "total_records": result.total_records,
+            "anomaly_count": result.anomaly_count,
+            "anomaly_percentage": result.anomaly_percentage,
+        }
+        for result in run.source_results
+    }
+
+
 @history_bp.get("/history")
 @jwt_required()
 def get_history():
@@ -15,20 +26,29 @@ def get_history():
     # Eager load the incident relationship to prevent N+1 query overhead
     runs = (
         AnalysisRun.query.filter_by(user_id=int(user_id))
-        .options(db.joinedload(AnalysisRun.incident))
+        .options(
+            db.joinedload(AnalysisRun.incident),
+            db.joinedload(AnalysisRun.source_results),
+        )
         .order_by(AnalysisRun.created_at.desc())
         .all()
     )
 
     history_list = []
     for run in runs:
+        source_breakdown = _source_breakdown(run)
         history_list.append({
+            "id": run.id,
             "run_id": run.id,
             "run_name": run.run_name,
             "risk_score": run.incident.risk_score if run.incident else None,
             "risk_level": run.incident.risk_level if run.incident else None,
             "status": run.status,
-            "created_at": run.created_at.isoformat() if run.created_at else None
+            "created_at": run.created_at.isoformat() if run.created_at else None,
+            "auth_anomalies": source_breakdown.get("auth", {}).get("anomaly_count", 0),
+            "api_anomalies": source_breakdown.get("api", {}).get("anomaly_count", 0),
+            "system_anomalies": source_breakdown.get("system", {}).get("anomaly_count", 0),
+            "source_breakdown": source_breakdown,
         })
 
     return jsonify({"history": history_list}), 200

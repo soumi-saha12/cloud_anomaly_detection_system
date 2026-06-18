@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, jsonify
 from werkzeug.exceptions import BadRequest, InternalServerError, NotFound
 
@@ -16,8 +19,19 @@ def create_app():
 
     # Initialize extensions
     db.init_app(app)
+    with app.app_context():
+        db.create_all()
     migrate.init_app(app, db)
-    cors.init_app(app, resources={r"/*": {"origins": app.config["CORS_ORIGINS"]}})
+    cors.init_app(
+        app,
+        resources={
+            r"/*": {
+                "origins": app.config["CORS_ORIGINS"],
+                "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization"],
+            }
+        },
+    )
     jwt.init_app(app)
 
     # Register JWT token blocklist check

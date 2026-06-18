@@ -102,12 +102,15 @@ def analyze():
 
         # Save Incident record
         inc = Incident(
-            analysis_run_id=run.id,
+            run_id=run.id,
+            incident_type="correlated_anomaly",
+            severity=incident_data["risk_level"],
+            description=incident_data["incident_summary"],
             risk_score=incident_data["risk_score"],
             risk_level=incident_data["risk_level"],
             incident_summary=incident_data["incident_summary"],
             explanations=incident_data["explanations"]
-        )
+    )   
         db.session.add(inc)
 
         # Complete run

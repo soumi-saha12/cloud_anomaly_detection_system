@@ -34,4 +34,13 @@ class Config:
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
 
     # CORS settings
-    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
+    _cors_origins = [
+        origin.strip()
+        for origin in os.getenv("CORS_ORIGINS", "").split(",")
+        if origin.strip()
+    ]
+    CORS_ORIGINS = list(dict.fromkeys([
+        *_cors_origins,
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]))
