@@ -14,15 +14,15 @@ import { Link } from "react-router-dom";
  */
 
 const COLORS = {
-  bg: "#0a0a12",
-  card: "#0f0f1a",
-  cardHover: "#12121f",
-  borderSubtle: "rgba(167, 139, 250, 0.12)",
-  borderHover: "rgba(167, 139, 250, 0.35)",
-  accent: "#a78bfa",
+  bg: "var(--bg-base)",
+  card: "var(--bg-card)",
+  cardHover: "var(--bg-card-hover)",
+  borderSubtle: "var(--border)",
+  borderHover: "var(--border-hover)",
+  accent: "var(--accent)",
   accentHover: "#b9a3fc",
-  textPrimary: "#e2e0f0",
-  textMuted: "#6b6880",
+  textPrimary: "var(--text-primary)",
+  textMuted: "var(--text-secondary)",
 };
 
 const FONT = "'Outfit', sans-serif";

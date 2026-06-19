@@ -3,16 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { register } from "../services/api";
 
 const COLORS = {
-  bg: "#08080f",
-  card: "#0f0f1a",
-  border: "rgba(167, 139, 250, 0.12)",
+  bg: "var(--bg-base)",
+  card: "var(--bg-card)",
+  border: "var(--border)",
   borderFocus: "rgba(167, 139, 250, 0.5)",
-  accent: "#a78bfa",
-  accentDeep: "#7c3aed",
-  textPrimary: "#e2e0f0",
-  textMuted: "#6b6880",
-  textLabel: "#8a85a0",
-  danger: "#f87171",
+  accent: "var(--accent)",
+  accentDeep: "var(--accent-hover)",
+  textPrimary: "var(--text-primary)",
+  textMuted: "var(--text-secondary)",
+  textLabel: "var(--text-muted)",
+  danger: "var(--danger)",
   dangerBg: "rgba(239, 68, 68, 0.12)",
   dangerBorder: "rgba(239, 68, 68, 0.3)",
 };

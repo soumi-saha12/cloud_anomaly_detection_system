@@ -29,9 +29,9 @@ export default function LoginPage() {
     width: "100%",
     padding: "12px 16px",
     borderRadius: "10px",
-    border: "1px solid rgba(167,139,250,0.2)",
-    background: "#0a0a14",
-    color: "#e2e0f0",
+    border: "1px solid var(--border)",
+    background: "var(--bg-card)",
+    color: "var(--text-primary)",
     fontSize: "14px",
     fontFamily: "'Outfit', sans-serif",
     fontWeight: 400,
@@ -44,7 +44,7 @@ export default function LoginPage() {
     display: "block",
     fontSize: "11px",
     fontWeight: 500,
-    color: "#6b6880",
+    color: "var(--text-muted)",
     textTransform: "uppercase",
     letterSpacing: "0.06em",
     marginBottom: "8px",
@@ -54,7 +54,7 @@ export default function LoginPage() {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "#08080f",
+      background: "var(--bg-base)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -92,13 +92,13 @@ export default function LoginPage() {
             </svg>
           </Link>
           <h1 style={{
-            fontSize: "22px", fontWeight: 600, color: "#e2e0f0",
+            fontSize: "22px", fontWeight: 600, color: "var(--text-primary)",
             fontFamily: "'Outfit', sans-serif", display: "block",
           }}>
             Welcome back
           </h1>
           <p style={{
-            fontSize: "13px", color: "#6b6880", marginTop: "6px",
+            fontSize: "13px", color: "var(--text-secondary)", marginTop: "6px",
             fontFamily: "'Outfit', sans-serif",
           }}>
             Sign in to Cloud Anomaly Detection
@@ -107,8 +107,8 @@ export default function LoginPage() {
 
         {/* Card */}
         <div style={{
-          background: "#0f0f1a",
-          border: "1px solid rgba(167,139,250,0.14)",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border)",
           borderRadius: "20px",
           padding: "32px",
           boxShadow: "var(--shadow-resting)",
@@ -120,7 +120,7 @@ export default function LoginPage() {
               padding: "12px 16px", borderRadius: "10px", marginBottom: "20px",
               background: "rgba(248,113,113,0.08)",
               border: "1px solid rgba(248,113,113,0.25)",
-              color: "#f87171", fontSize: "13px",
+              color: "var(--danger)", fontSize: "13px",
               fontFamily: "'Outfit', sans-serif",
             }}>
               {error}
@@ -137,8 +137,8 @@ export default function LoginPage() {
                 onChange={e => setEmail(e.target.value)}
                 placeholder="analyst@company.com"
                 style={inputStyle}
-                onFocus={e => e.target.style.borderColor = "#a78bfa"}
-                onBlur={e => e.target.style.borderColor = "rgba(167,139,250,0.2)"}
+                onFocus={e => e.target.style.borderColor = "var(--accent)"}
+                onBlur={e => e.target.style.borderColor = "var(--border)"}
               />
             </div>
 
@@ -151,8 +151,8 @@ export default function LoginPage() {
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
                 style={inputStyle}
-                onFocus={e => e.target.style.borderColor = "#a78bfa"}
-                onBlur={e => e.target.style.borderColor = "rgba(167,139,250,0.2)"}
+                onFocus={e => e.target.style.borderColor = "var(--accent)"}
+                onBlur={e => e.target.style.borderColor = "var(--border)"}
               />
             </div>
 
@@ -182,11 +182,11 @@ export default function LoginPage() {
 
           <p style={{
             textAlign: "center", marginTop: "24px",
-            fontSize: "13px", color: "#6b6880",
+            fontSize: "13px", color: "var(--text-secondary)",
             fontFamily: "'Outfit', sans-serif",
           }}>
             Don't have an account?{" "}
-            <Link to="/register" style={{ color: "#a78bfa", textDecoration: "none", fontWeight: 500 }}>
+            <Link to="/register" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 500 }}>
               Create account
             </Link>
           </p>
