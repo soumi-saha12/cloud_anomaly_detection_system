@@ -17,7 +17,7 @@ function ProtectedRoute({ children }) {
 
   if (loading && hasToken) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-[#08080f] text-[#e2e0f0] font-body">
+      <div className="app-theme flex flex-col items-center justify-center h-screen bg-panel-bg text-panel-text font-body">
         <div className="w-10 h-10 rounded-full border-2 border-[#a78bfa] border-t-transparent animate-spin mb-4" />
         <span className="text-sm font-medium">Restoring session...</span>
       </div>
