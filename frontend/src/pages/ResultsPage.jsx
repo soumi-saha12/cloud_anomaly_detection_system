@@ -84,7 +84,7 @@ export default function ResultsPage() {
       <MainLayout>
         <div className="app-page-shell">
           <div className="app-page-container">
-          <div className="rounded-[16px] p-10 border border-panel-border bg-[#0f0f1a] text-center shadow-[var(--shadow-resting)]">
+          <div className="rounded-[16px] p-10 border border-panel-border bg-panel-card text-center shadow-[var(--shadow-resting)]">
             <h2 className="text-panel-text font-medium text-[16px] font-heading">No analysis results found</h2>
             <p className="text-panel-subtext text-sm mt-2 font-body">The requested analysis run output does not exist.</p>
           </div>

@@ -5,15 +5,15 @@ import MainLayout from "../layouts/MainLayout";
 import { getAnomalyCount } from "../utils/anomalyCounts";
 
 const COLORS = {
-  bg: "#08080f",
-  card: "#0f0f1a",
-  cardHover: "#12121f",
-  border: "rgba(167, 139, 250, 0.12)",
-  borderHover: "rgba(167, 139, 250, 0.35)",
-  accent: "#a78bfa",
-  textPrimary: "#e2e0f0",
-  textMuted: "#6b6880",
-  pillBg: "#08080f",
+  bg: "var(--bg-base)",
+  card: "var(--bg-card)",
+  cardHover: "var(--bg-card-hover)",
+  border: "var(--border)",
+  borderHover: "var(--border-hover)",
+  accent: "var(--accent)",
+  textPrimary: "var(--text-primary)",
+  textMuted: "var(--text-secondary)",
+  pillBg: "var(--bg-base)",
 };
 
 const FONT = "'Outfit', sans-serif";

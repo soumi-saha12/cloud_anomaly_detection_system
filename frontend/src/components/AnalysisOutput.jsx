@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 
 // ─── Risk colour system ────────────────────────────────────────────────────────
+// hex values here are intentional — these are semantic status colors,
+// not theme colors, so they stay consistent across light/dark.
 const RISK = {
   CRITICAL: { hex: "#f87171", bg: "rgba(239,68,68,0.12)",  border: "rgba(239,68,68,0.35)",  shadow: "rgba(239,68,68,0.20)"  },
   HIGH:     { hex: "#fb923c", bg: "rgba(251,146,60,0.12)", border: "rgba(251,146,60,0.35)", shadow: "rgba(251,146,60,0.20)" },
@@ -43,9 +45,9 @@ function normalizeIncidents(result) {
 const card = {
   base: {
     borderRadius: 16,
-    background: "#0e0e1c",
-    border: "1px solid rgba(255,255,255,0.07)",
-    boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
+    background: "var(--bg-card)",
+    border: "1px solid var(--border)",
+    boxShadow: "var(--shadow-resting)",
   },
 };
 
@@ -70,18 +72,18 @@ function StatCard({ label, icon, children, sub }) {
     <div style={{ ...card.base, padding: "20px 24px", display: "flex", flexDirection: "column", gap: 10, transition: "all 0.2s" }}
       className="hover:-translate-y-1 hover:border-[rgba(167,139,250,0.3)]">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.14em", color: "#6b7280" }}>
+        <span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.14em", color: "var(--text-secondary)" }}>
           {label}
         </span>
-        {icon && <span style={{ color: "rgba(167,139,250,0.25)", display: "flex" }}>{icon}</span>}
+        {icon && <span style={{ color: "var(--border-hover)", display: "flex" }}>{icon}</span>}
       </div>
       <div>{children}</div>
-      {sub && <div style={{ fontSize: 11, color: "#4b5563", marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{sub}</div>}
     </div>
   );
 }
 
-function SourceCard({ source, riskHex }) {
+function SourceCard({ source }) {
   const count = source.anomaly_count ?? 0;
   const total = source.total_records ?? 0;
   const pct   = Number(source.anomaly_percentage ?? 0);
@@ -91,22 +93,23 @@ function SourceCard({ source, riskHex }) {
 
   return (
     <div style={{
-      borderRadius: 12, background: "#0a0a16",
-      border: `1px solid rgba(255,255,255,0.06)`,
+      borderRadius: 12,
+      background: "var(--bg-base)",
+      border: "1px solid var(--border)",
       padding: "18px 20px", display: "flex", flexDirection: "column", gap: 8,
       transition: "all 0.2s",
     }} className="hover:-translate-y-0.5 hover:border-[rgba(167,139,250,0.25)]">
-      <span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.14em", color: "#6b7280" }}>
+      <span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.14em", color: "var(--text-secondary)" }}>
         {SOURCE_LABELS[source.source_type] || source.source_type}
       </span>
       <div style={{ fontSize: 34, fontWeight: 700, lineHeight: 1, color: c.hex, fontFamily: "monospace" }}>
         {count.toLocaleString()}
       </div>
-      <div style={{ fontSize: 11, color: "#4b5563" }}>
+      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
         anomalies in {total.toLocaleString()} records
       </div>
       {/* Progress bar */}
-      <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden", marginTop: 2 }}>
+      <div style={{ height: 4, borderRadius: 99, background: "var(--border)", overflow: "hidden", marginTop: 2 }}>
         <div style={{
           height: "100%", borderRadius: 99, width: `${bar}%`,
           background: c.hex, boxShadow: `0 0 8px ${c.hex}80`,
@@ -120,7 +123,7 @@ function SourceCard({ source, riskHex }) {
 
 function SectionLabel({ children }) {
   return (
-    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "#4b5563", marginBottom: 12 }}>
+    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--text-muted)", marginBottom: 12 }}>
       {children}
     </div>
   );
@@ -136,10 +139,12 @@ export default function AnalysisOutput({ result, runId, showBackLink = false }) 
   const sources   = normalizeSourceResults(result);
   const incidents = normalizeIncidents(result);
 
-  const runLabel = result.run_name || `Run #${runId || result.run_id || result.id || "—"}`;
+  const runLabel    = result.run_name || `Run #${runId || result.run_id || result.id || "—"}`;
   const statusLabel = result.status ? (result.status.charAt(0).toUpperCase() + result.status.slice(1).toLowerCase()) : "Completed";
-  const dateLabel = result.created_at ? new Date(result.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-    : result.timestamp ? new Date(result.timestamp).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+  const dateLabel   = result.created_at
+    ? new Date(result.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    : result.timestamp
+    ? new Date(result.timestamp).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
     : "Saved Audit";
 
   return (
@@ -149,23 +154,23 @@ export default function AnalysisOutput({ result, runId, showBackLink = false }) 
       <div style={{
         ...card.base,
         padding: "24px 28px",
-        background: `linear-gradient(135deg, rgba(124,58,237,0.08) 0%, #0e0e1c 60%)`,
-        borderColor: "rgba(167,139,250,0.15)",
+        background: `linear-gradient(135deg, var(--accent-subtle) 0%, var(--bg-card) 60%)`,
+        borderColor: "var(--border)",
         display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap",
       }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#f1f0ff", letterSpacing: "-0.02em" }}>
+            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
               Analysis Results
             </h2>
             <RiskBadge level={riskLevel} />
           </div>
-          <p style={{ margin: 0, fontSize: 11, color: "#6b7280" }}>Telemetry Run: {runLabel}</p>
+          <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)" }}>Telemetry Run: {runLabel}</p>
         </div>
         {showBackLink && (
           <Link to="/history" style={{
-            padding: "7px 18px", borderRadius: 99, border: "1px solid rgba(167,139,250,0.4)",
-            background: "transparent", color: "#a78bfa", fontSize: 11, fontWeight: 600,
+            padding: "7px 18px", borderRadius: 99, border: "1px solid var(--border-hover)",
+            background: "transparent", color: "var(--accent)", fontSize: 11, fontWeight: 600,
             textDecoration: "none", transition: "all 0.2s",
           }} className="hover:bg-[rgba(167,139,250,0.08)] hover:-translate-y-0.5">
             ← Back to History
@@ -199,7 +204,7 @@ export default function AnalysisOutput({ result, runId, showBackLink = false }) 
           sub={dateLabel}
           icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>}
         >
-          <span style={{ fontSize: 22, fontWeight: 600, color: "#a78bfa" }}>{statusLabel}</span>
+          <span style={{ fontSize: 22, fontWeight: 600, color: "var(--accent)" }}>{statusLabel}</span>
         </StatCard>
       </div>
 
@@ -208,7 +213,7 @@ export default function AnalysisOutput({ result, runId, showBackLink = false }) 
         <SectionLabel>Source Breakdown</SectionLabel>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}
           className="!grid-cols-1 sm:!grid-cols-3">
-          {sources.map((s) => <SourceCard key={s.source_type} source={s} riskHex={rc.hex} />)}
+          {sources.map((s) => <SourceCard key={s.source_type} source={s} />)}
         </div>
       </div>
 
@@ -218,17 +223,17 @@ export default function AnalysisOutput({ result, runId, showBackLink = false }) 
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           paddingBottom: 16, marginBottom: 16,
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          borderBottom: "1px solid var(--border)",
         }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: "#e5e7eb" }}>Incident Summary</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>Incident Summary</span>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 11, color: "#4b5563" }}>Risk Level:</span>
+            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Risk Level:</span>
             <RiskBadge level={riskLevel} />
           </div>
         </div>
 
         {summary && (
-          <p style={{ fontSize: 13, color: "#9ca3af", lineHeight: 1.8, margin: "0 0 16px" }}>{summary}</p>
+          <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.8, margin: "0 0 16px" }}>{summary}</p>
         )}
 
         {incidents.length > 0 ? incidents.map((item) => {
@@ -244,14 +249,15 @@ export default function AnalysisOutput({ result, runId, showBackLink = false }) 
 
           return (
             <div key={item.id || "incident"} style={{
-              borderRadius: 12, background: "#080812",
-              border: "1px solid rgba(255,255,255,0.05)",
+              borderRadius: 12,
+              background: "var(--bg-base)",
+              border: "1px solid var(--border)",
               padding: "18px 20px", display: "flex", flexDirection: "column", gap: 16,
             }}>
               {showDesc && (
                 <div>
                   <SectionLabel>Explanation</SectionLabel>
-                  <p style={{ fontSize: 13, color: "#9ca3af", lineHeight: 1.8, margin: 0 }}>{description}</p>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.8, margin: 0 }}>{description}</p>
                 </div>
               )}
               {factors.length > 0 && (
@@ -265,7 +271,7 @@ export default function AnalysisOutput({ result, runId, showBackLink = false }) 
                           background: rc.hex, boxShadow: `0 0 6px ${rc.hex}`,
                           flexShrink: 0, display: "block",
                         }} />
-                        <span style={{ fontSize: 13, color: "#d1d5db", lineHeight: 1.7 }}>{f}</span>
+                        <span style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.7 }}>{f}</span>
                       </div>
                     ))}
                   </div>
@@ -275,8 +281,10 @@ export default function AnalysisOutput({ result, runId, showBackLink = false }) 
           );
         }) : (
           <div style={{
-            borderRadius: 12, background: "#080812", border: "1px solid rgba(255,255,255,0.05)",
-            padding: "32px 20px", textAlign: "center", fontSize: 13, color: "#4b5563",
+            borderRadius: 12,
+            background: "var(--bg-base)",
+            border: "1px solid var(--border)",
+            padding: "32px 20px", textAlign: "center", fontSize: 13, color: "var(--text-muted)",
           }}>
             No incidents were detected for this analysis run.
           </div>

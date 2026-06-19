@@ -1,17 +1,17 @@
 import MainLayout from "../layouts/MainLayout";
 
 const COLORS = {
-  bg: "#08080f",
-  card: "#0f0f1a",
-  border: "rgba(167, 139, 250, 0.12)",
-  accent: "#a78bfa",
-  accentDeep: "#7c3aed",
-  textPrimary: "#e2e0f0",
-  textMuted: "#6b6880",
-  textLabel: "#8a85a0",
-  green: "#4ade80",
+  bg: "var(--bg-base)",
+  card: "var(--bg-card)",
+  border: "var(--border)",
+  accent: "var(--accent)",
+  accentDeep: "var(--accent-hover)",
+  textPrimary: "var(--text-primary)",
+  textMuted: "var(--text-secondary)",
+  textLabel: "var(--text-muted)",
+  green: "var(--success)",
   orange: "#fb923c",
-  red: "#f87171",
+  red: "var(--danger)",
 };
 
 const FONT = "'Outfit', sans-serif";

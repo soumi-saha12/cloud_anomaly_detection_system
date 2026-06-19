@@ -125,7 +125,7 @@ export default function IncidentDetailsPage() {
     return (
       <MainLayout>
         <div className="p-8">
-          <div className="rounded-[16px] p-10 border border-panel-border bg-[#0f0f1a] text-center shadow-sm">
+          <div className="rounded-[16px] p-10 border border-panel-border bg-panel-card text-center shadow-sm">
             <h2 className="text-panel-text font-medium text-[16px] font-heading">Incident not found</h2>
             <p className="text-panel-subtext text-sm mt-2 font-body">No security incident matches the provided ID.</p>
           </div>
@@ -172,24 +172,24 @@ export default function IncidentDetailsPage() {
       <div className="py-10 px-12 space-y-6 w-full font-body">
         {/* 3 Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="rounded-[16px] py-6 px-8 border border-panel-border bg-[#0f0f1a] shadow-2xl shadow-black/60 backdrop-blur-md space-y-1.5 hover:bg-panel-card-hover hover:border-[#a78bfa]/30 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(167,139,250,0.18)] transition-all duration-200">
+          <div className="rounded-[16px] py-6 px-8 border border-panel-border bg-panel-card shadow-2xl shadow-black/60 backdrop-blur-md space-y-1.5 hover:bg-panel-card-hover hover:border-[#a78bfa]/30 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(167,139,250,0.18)] transition-all duration-200">
             <p className="text-panel-subtext text-xs font-normal uppercase tracking-wider">Classification Type</p>
             <p className="text-base font-semibold text-panel-text font-heading">{incident.incident_type || incident.type || "Correlated Incident"}</p>
           </div>
 
-          <div className="rounded-[16px] py-6 px-8 border border-panel-border bg-[#0f0f1a] shadow-2xl shadow-black/60 backdrop-blur-md space-y-1.5 hover:bg-panel-card-hover hover:border-[#a78bfa]/30 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(167,139,250,0.18)] transition-all duration-200">
+          <div className="rounded-[16px] py-6 px-8 border border-panel-border bg-panel-card shadow-2xl shadow-black/60 backdrop-blur-md space-y-1.5 hover:bg-panel-card-hover hover:border-[#a78bfa]/30 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(167,139,250,0.18)] transition-all duration-200">
             <p className="text-panel-subtext text-xs font-normal uppercase tracking-wider">Severity Classification</p>
             <div className="pt-0.5"><RiskBadge level={level} /></div>
           </div>
 
-          <div className="rounded-[16px] py-6 px-8 border border-panel-border bg-[#0f0f1a] shadow-2xl shadow-black/60 backdrop-blur-md space-y-1.5 hover:bg-panel-card-hover hover:border-[#a78bfa]/30 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(167,139,250,0.18)] transition-all duration-200">
+          <div className="rounded-[16px] py-6 px-8 border border-panel-border bg-panel-card shadow-2xl shadow-black/60 backdrop-blur-md space-y-1.5 hover:bg-panel-card-hover hover:border-[#a78bfa]/30 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(167,139,250,0.18)] transition-all duration-200">
             <p className="text-panel-subtext text-xs font-normal uppercase tracking-wider">Risk Severity Score</p>
             <p className="text-[32px] font-semibold text-panel-primary font-heading leading-tight font-mono">{Number(score).toFixed(1)}</p>
           </div>
         </div>
 
         {/* Description */}
-        <div className="rounded-[16px] py-6 px-8 border border-panel-border bg-[#0f0f1a] shadow-2xl shadow-black/60 backdrop-blur-md space-y-3 hover:bg-panel-card-hover hover:border-[#a78bfa]/30 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(167,139,250,0.18)] transition-all duration-200">
+        <div className="rounded-[16px] py-6 px-8 border border-panel-border bg-panel-card shadow-2xl shadow-black/60 backdrop-blur-md space-y-3 hover:bg-panel-card-hover hover:border-[#a78bfa]/30 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(167,139,250,0.18)] transition-all duration-200">
           <h2 className="text-[16px] font-medium text-panel-text font-heading">Description</h2>
           <p className="text-sm text-panel-text leading-relaxed font-normal">
             {incident.description || incident.incident_summary || "No description available for this incident."}
@@ -197,13 +197,13 @@ export default function IncidentDetailsPage() {
         </div>
 
         {/* ML Explanations */}
-        <div className="rounded-[16px] py-6 px-8 border border-panel-border bg-[#0f0f1a] shadow-2xl shadow-black/60 backdrop-blur-md space-y-4 hover:bg-panel-card-hover hover:border-[#a78bfa]/30 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(167,139,250,0.18)] transition-all duration-200">
+        <div className="rounded-[16px] py-6 px-8 border border-panel-border bg-panel-card shadow-2xl shadow-black/60 backdrop-blur-md space-y-4 hover:bg-panel-card-hover hover:border-[#a78bfa]/30 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(167,139,250,0.18)] transition-all duration-200">
           <h2 className="text-[16px] font-medium text-panel-text font-heading">Machine Learning Correlation Explanation</h2>
 
           {mlExplanation.length > 0 ? (
             <div className="space-y-3">
               {mlExplanation.map((ex, idx) => (
-                <div key={idx} className="text-xs text-panel-subtext rounded-xl py-4 px-6 border border-panel-border/40 bg-[#12121f] font-medium leading-relaxed font-body hover:border-[#a78bfa]/40 hover:bg-[#161625] hover:translate-x-1 transition-all duration-200">
+                <div key={idx} className="text-xs text-panel-subtext rounded-xl py-4 px-6 border border-panel-border/40 bg-panel-card-hover font-medium leading-relaxed font-body hover:border-[#a78bfa]/40 hover:bg-panel-card-hover hover:translate-x-1 transition-all duration-200">
                   {ex}
                 </div>
               ))}

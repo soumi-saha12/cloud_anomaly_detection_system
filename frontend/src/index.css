@@ -1,29 +1,114 @@
 @import "tailwindcss";
 
 @theme {
-  --color-panel-bg: #08080f;
-  --color-panel-card: #0f0f1a;
-  --color-panel-card-hover: #141426;
-  --color-panel-border: rgba(167, 139, 250, 0.12);
-  --color-panel-primary: #a78bfa;
-  --color-panel-accent: #7c3aed;
-  --color-panel-text: #e2e0f0;
-  --color-panel-subtext: #6b6880;
-  --color-panel-success: #4ade80;
-  --color-panel-danger: #f87171;
+  --color-panel-bg: var(--panel-bg);
+  --color-panel-card: var(--panel-card);
+  --color-panel-card-hover: var(--panel-card-hover);
+  --color-panel-border: var(--panel-border);
+  --color-panel-primary: var(--panel-primary);
+  --color-panel-accent: var(--panel-accent);
+  --color-panel-text: var(--panel-text);
+  --color-panel-subtext: var(--panel-subtext);
+  --color-panel-success: var(--panel-success);
+  --color-panel-danger: var(--panel-danger);
 }
 
+/* ─── DARK MODE (default) ─────────────────────────────── */
 :root {
+  --panel-bg: #08080f;
+  --panel-card: #0f0f1a;
+  --panel-card-hover: #141426;
+  --panel-border: rgba(167, 139, 250, 0.12);
+  --panel-primary: #a78bfa;
+  --panel-accent: #7c3aed;
+  --panel-text: #e2e0f0;
+  --panel-subtext: #6b6880;
+  --panel-success: #4ade80;
+  --panel-danger: #f87171;
+
   --bg-base: #08080f;
   --bg-card: #0f0f1a;
   --bg-card-hover: #141426;
   --border: rgba(167, 139, 250, 0.12);
+  --border-hover: rgba(167, 139, 250, 0.35);
   --accent: #a78bfa;
   --accent-hover: #7c3aed;
+  --accent-subtle: rgba(167, 139, 250, 0.10);
   --text-primary: #e2e0f0;
   --text-secondary: #6b6880;
+  --text-muted: #4a4760;
   --success: #4ade80;
   --danger: #f87171;
+  --warning: #fbbf24;
+
+  /* Shadows */
+  --shadow-resting: 0 12px 32px rgba(0, 0, 0, 0.28);
+  --shadow-hover: 0 18px 42px rgba(0, 0, 0, 0.36), 0 8px 24px rgba(124, 58, 237, 0.14);
+  --shadow-active: 0 0 0 1px rgba(167, 139, 250, 0.28), 0 12px 34px rgba(124, 58, 237, 0.16);
+
+  /* Scrollbar */
+  --scrollbar-thumb: rgba(167, 139, 250, 0.2);
+
+  /* Nav/sidebar glass */
+  --nav-bg: rgba(8, 8, 15, 0.82);
+  --nav-border: rgba(167, 139, 250, 0.10);
+
+  /* Input */
+  --input-bg: #0f0f1a;
+  --input-border: rgba(167, 139, 250, 0.18);
+  --input-focus-border: #a78bfa;
+  --input-placeholder: #4a4760;
+}
+
+/* ─── LIGHT MODE (authenticated app only) ─────────────── */
+html.light .app-theme {
+  --panel-bg: #f3efe4;
+  --panel-card: #f1ecfa;
+  --panel-card-hover: #f1ecfa;
+  --panel-border: rgba(127, 110, 160, 0.22);
+  --panel-primary: #a78bfa;
+  --panel-accent: #7c3aed;
+  --panel-text: #2b2418;
+  --panel-subtext: #6b5d47;
+  --panel-success: #16a34a;
+  --panel-danger: #dc2626;
+
+  --bg-base: #f3ede3;
+  --bg-card: #fbf6ec;
+  --bg-card-hover: #fbf6ec;
+  --border: #e4d9c5;
+  --border-hover: rgba(124, 58, 237, 0.28);
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --accent-subtle: rgba(124, 58, 237, 0.08);
+  --text-primary: #2b2418;
+  --text-secondary: #6b5d47;
+  --text-muted: #8b7d68;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --warning: #d97706;
+
+  /* Shadows — softer, warm-tinted */
+  --shadow-resting: 0 4px 20px rgba(100, 70, 160, 0.08);
+  --shadow-hover: 0 10px 32px rgba(100, 70, 160, 0.14), 0 4px 12px rgba(124, 58, 237, 0.08);
+  --shadow-active: 0 0 0 1px rgba(124, 58, 237, 0.22), 0 8px 24px rgba(124, 58, 237, 0.12);
+
+  /* Scrollbar */
+  --scrollbar-thumb: rgba(124, 58, 237, 0.18);
+
+  /* Nav/sidebar glass */
+  --nav-bg: rgba(245, 240, 232, 0.88);
+  --nav-border: rgba(139, 107, 200, 0.12);
+
+  /* Input */
+  --input-bg: #fbf6ec;
+  --input-border: #e4d9c5;
+  --input-focus-border: #7c3aed;
+  --input-placeholder: #8b7d68;
+}
+
+/* ─── SPACING / LAYOUT TOKENS (theme-independent) ─────── */
+:root {
   --space-1: 8px;
   --space-2: 16px;
   --space-3: 24px;
@@ -33,17 +118,16 @@
   --content-max-width: 1280px;
   --page-padding-block: var(--space-5);
   --page-padding-inline: var(--space-5);
-  --shadow-resting: 0 12px 32px rgba(0, 0, 0, 0.28);
-  --shadow-hover: 0 18px 42px rgba(0, 0, 0, 0.36), 0 8px 24px rgba(124, 58, 237, 0.14);
-  --shadow-active: 0 0 0 1px rgba(167, 139, 250, 0.28), 0 12px 34px rgba(124, 58, 237, 0.16);
+
   --blur-layer: blur(10px);
   --transition-card: border-color 200ms ease-out, background-color 200ms ease-out, box-shadow 200ms ease-out, transform 200ms ease-out;
   --transition-button: filter 150ms ease-out, transform 150ms ease-out, box-shadow 150ms ease-out, opacity 150ms ease-out;
   --transition-nav: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
   --transition-row: background-color 120ms ease-out, border-color 120ms ease-out, box-shadow 120ms ease-out, transform 120ms ease-out;
+  --transition-theme: background-color 250ms ease, color 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
 }
 
-/* Base reset — do NOT set color here, let components control it */
+/* ─── BASE RESET ───────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -54,6 +138,8 @@ html {
   font-family: 'Outfit', sans-serif;
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
+  /* Smooth theme transitions on the html element itself */
+  transition: var(--transition-theme);
 }
 
 body {
@@ -62,17 +148,16 @@ body {
   min-height: 100vh;
   font-family: 'Outfit', sans-serif;
   font-weight: 400;
+  transition: var(--transition-theme);
 }
 
-/* Typography — weights set per element, NOT globally */
+/* ─── TYPOGRAPHY ───────────────────────────────────────── */
 h1 { font-size: 28px; font-weight: 600; color: var(--text-primary); }
 h2 { font-size: 20px; font-weight: 500; color: var(--text-primary); }
 h3 { font-size: 16px; font-weight: 500; color: var(--text-primary); }
 h4 { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+p  { font-weight: 400; color: var(--text-primary); }
 
-p { font-weight: 400; color: var(--text-primary); }
-
-/* Stat numbers */
 .stat-number {
   font-size: 32px;
   font-weight: 600;
@@ -80,18 +165,20 @@ p { font-weight: 400; color: var(--text-primary); }
   font-family: 'Outfit', sans-serif;
 }
 
-/* Focus */
+/* ─── FOCUS ────────────────────────────────────────────── */
 *:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
+/* ─── LAYOUT SHELLS ────────────────────────────────────── */
 .app-page-shell {
   width: 100%;
   min-height: 100%;
   background: var(--bg-base);
   padding: 48px 48px;
   box-sizing: border-box;
+  transition: var(--transition-theme);
 }
 
 .app-page-container {
@@ -101,6 +188,7 @@ p { font-weight: 400; color: var(--text-primary); }
   box-sizing: border-box;
 }
 
+/* ─── GRID HELPERS ─────────────────────────────────────── */
 .dashboard-stat-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -129,6 +217,7 @@ p { font-weight: 400; color: var(--text-primary); }
   gap: var(--space-2);
 }
 
+/* ─── INTERACTIVE CARDS & BUTTONS ──────────────────────── */
 .interactive-card {
   box-shadow: var(--shadow-resting);
   backdrop-filter: var(--blur-layer);
@@ -136,7 +225,7 @@ p { font-weight: 400; color: var(--text-primary); }
 }
 
 .interactive-card:hover {
-  border-color: rgba(167,139,250,0.35) !important;
+  border-color: var(--border-hover) !important;
   background-color: var(--bg-card-hover) !important;
   box-shadow: var(--shadow-hover) !important;
   transform: translateY(-3px);
@@ -156,6 +245,43 @@ p { font-weight: 400; color: var(--text-primary); }
   box-shadow: var(--shadow-active);
 }
 
+/* ─── THEME TOGGLE BUTTON ──────────────────────────────── */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  transition: var(--transition-nav), box-shadow 150ms ease;
+  user-select: none;
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: var(--shadow-active);
+}
+
+.theme-toggle-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ─── SCROLLBAR ────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ─── RESPONSIVE ───────────────────────────────────────── */
 @media (max-width: 1024px) {
   .dashboard-stat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -203,8 +329,10 @@ p { font-weight: 400; color: var(--text-primary); }
   }
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: var(--bg-base); }
-::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.2); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+/* ─── REDUCED MOTION ───────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

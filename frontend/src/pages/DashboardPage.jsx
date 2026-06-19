@@ -42,8 +42,8 @@ function RiskBadge({ level }) {
 }
 
 const card = {
-  background: "#0f0f1a",
-  border: "1px solid rgba(167,139,250,0.12)",
+  background: "var(--bg-card)",
+  border: "1px solid var(--border)",
   borderRadius: "16px",
   padding: "24px",
 };
@@ -120,7 +120,7 @@ export default function DashboardPage() {
               border: "2px solid #a78bfa", borderTopColor: "transparent",
               animation: "spin 0.8s linear infinite", margin: "0 auto 16px",
             }} />
-            <p style={{ color: "#6b6880", fontSize: "14px" }}>Loading dashboard...</p>
+            <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>Loading dashboard...</p>
           </div>
         </div>
       </MainLayout>
@@ -133,7 +133,7 @@ export default function DashboardPage() {
         <div style={{ padding: "40px 48px" }}>
           <div style={{ ...card, borderColor: "rgba(248,113,113,0.25)", color: "#f87171", padding: "20px 24px" }}>
             <p style={{ fontWeight: 500 }}>Dashboard Error</p>
-            <p style={{ fontSize: "13px", marginTop: "4px", color: "#6b6880" }}>{error}</p>
+            <p style={{ fontSize: "13px", marginTop: "4px", color: "var(--text-secondary)" }}>{error}</p>
           </div>
         </div>
       </MainLayout>
@@ -169,10 +169,10 @@ export default function DashboardPage() {
         {/* Page Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <h1 style={{ fontSize: "26px", fontWeight: 600, color: "#e2e0f0", fontFamily: "'Outfit', sans-serif" }}>
+            <h1 style={{ fontSize: "26px", fontWeight: 600, color: "var(--text-primary)", fontFamily: "'Outfit', sans-serif" }}>
               Dashboard
             </h1>
-            <p style={{ fontSize: "13px", color: "#6b6880", marginTop: "4px", fontFamily: "'Outfit', sans-serif" }}>
+            <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "4px", fontFamily: "'Outfit', sans-serif" }}>
               Cloud security analytics overview
             </p>
           </div>
@@ -223,19 +223,19 @@ export default function DashboardPage() {
                 e.currentTarget.style.transform = "translateY(0)";
               }}
             >
-              <p style={{ fontSize: "11px", fontWeight: 500, color: "#6b6880", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "'Outfit', sans-serif" }}>
+              <p style={{ fontSize: "11px", fontWeight: 500, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "'Outfit', sans-serif" }}>
                 {s.label}
               </p>
               <div style={{ marginTop: "12px" }}>
                 {s.isLevel ? (
                   <RiskBadge level={String(s.value)} />
                 ) : (
-                  <p style={{ fontSize: "36px", fontWeight: 700, color: "#a78bfa", lineHeight: 1, fontFamily: "'Outfit', sans-serif" }}>
+                  <p style={{ fontSize: "36px", fontWeight: 700, color: "var(--accent)", lineHeight: 1, fontFamily: "'Outfit', sans-serif" }}>
                     {s.value}
                   </p>
                 )}
               </div>
-              <p style={{ fontSize: "12px", color: "#6b6880", marginTop: "10px", fontFamily: "'Outfit', sans-serif" }}>
+              <p style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "10px", fontFamily: "'Outfit', sans-serif" }}>
                 {s.sub}
               </p>
             </div>
@@ -260,8 +260,8 @@ export default function DashboardPage() {
             }}
           >
             <div style={{ marginBottom: "20px" }}>
-              <h2 style={{ fontSize: "15px", fontWeight: 500, color: "#e2e0f0", fontFamily: "'Outfit', sans-serif" }}>Risk Score Trend</h2>
-              <p style={{ fontSize: "12px", color: "#6b6880", marginTop: "3px", fontFamily: "'Outfit', sans-serif" }}>Anomaly counts across recent runs</p>
+              <h2 style={{ fontSize: "15px", fontWeight: 500, color: "var(--text-primary)", fontFamily: "'Outfit', sans-serif" }}>Risk Score Trend</h2>
+              <p style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "3px", fontFamily: "'Outfit', sans-serif" }}>Anomaly counts across recent runs</p>
             </div>
             <div style={{ flex: 1 }}>
               {recentRuns.length > 1 ? (
@@ -282,24 +282,24 @@ export default function DashboardPage() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                    <XAxis dataKey="name" stroke="#6b6880" fontSize={11} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6b6880" fontSize={11} tickLine={false} axisLine={false} />
+                    <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={false} />
+                    <YAxis stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={false} />
                     <Tooltip
-                      contentStyle={{ background: "#0f0f1a", border: "1px solid rgba(167,139,250,0.2)", borderRadius: "10px", fontSize: "12px", color: "#e2e0f0" }}
+                      contentStyle={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "10px", fontSize: "12px", color: "var(--text-primary)" }}
                       cursor={{ stroke: "rgba(167,139,250,0.15)", strokeWidth: 1 }}
                     />
-                    <Legend wrapperStyle={{ fontSize: "12px", color: "#6b6880", paddingTop: "12px" }} />
+                    <Legend wrapperStyle={{ fontSize: "12px", color: "var(--text-secondary)", paddingTop: "12px" }} />
                     <Line type="monotone" dataKey="Auth" stroke="#a78bfa" strokeWidth={2} dot={{ fill: "#a78bfa", r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
                     <Line type="monotone" dataKey="API" stroke="#67e8f9" strokeWidth={2} dot={{ fill: "#67e8f9", r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
                     <Line type="monotone" dataKey="System" stroke="#fbbf24" strokeWidth={2} dot={{ fill: "#fbbf24", r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : recentRuns.length === 1 ? (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "220px", color: "#6b6880", fontSize: "13px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "220px", color: "var(--text-secondary)", fontSize: "13px" }}>
                   Run more analyses to see trend data
                 </div>
               ) : (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "220px", color: "#6b6880", fontSize: "13px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "220px", color: "var(--text-secondary)", fontSize: "13px" }}>
                   No analysis runs yet
                 </div>
               )}
@@ -321,8 +321,8 @@ export default function DashboardPage() {
             }}
           >
             <div style={{ marginBottom: "16px" }}>
-              <h2 style={{ fontSize: "15px", fontWeight: 500, color: "#e2e0f0", fontFamily: "'Outfit', sans-serif" }}>Risk Distribution</h2>
-              <p style={{ fontSize: "12px", color: "#6b6880", marginTop: "3px", fontFamily: "'Outfit', sans-serif" }}>Incidents by severity</p>
+              <h2 style={{ fontSize: "15px", fontWeight: 500, color: "var(--text-primary)", fontFamily: "'Outfit', sans-serif" }}>Risk Distribution</h2>
+              <p style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "3px", fontFamily: "'Outfit', sans-serif" }}>Incidents by severity</p>
             </div>
             <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
               {hasDistribution ? (
@@ -339,21 +339,21 @@ export default function DashboardPage() {
                           <Cell key={entry.name} fill={riskHex[entry.name] || "#a78bfa"} />
                         ))}
                       </Pie>
-                      <Tooltip contentStyle={{ background: "#0f0f1a", border: "1px solid rgba(167,139,250,0.2)", borderRadius: "8px", fontSize: "12px", color: "#e2e0f0" }} />
+                      <Tooltip contentStyle={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "12px", color: "var(--text-primary)" }} />
                     </PieChart>
                   </ResponsiveContainer>
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%", marginTop: "8px" }}>
                     {riskDistribution.filter(d => d.value > 0).map(item => (
                       <div key={item.name} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: riskHex[item.name], flexShrink: 0 }} />
-                        <span style={{ fontSize: "12px", color: "#6b6880", fontFamily: "'Outfit', sans-serif", flex: 1 }}>{item.name}</span>
-                        <span style={{ fontSize: "12px", fontWeight: 600, color: "#e2e0f0", fontFamily: "'Outfit', sans-serif" }}>{item.value}</span>
+                        <span style={{ fontSize: "12px", color: "var(--text-secondary)", fontFamily: "'Outfit', sans-serif", flex: 1 }}>{item.name}</span>
+                        <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-primary)", fontFamily: "'Outfit', sans-serif" }}>{item.value}</span>
                       </div>
                     ))}
                   </div>
                 </>
               ) : (
-                <div style={{ color: "#6b6880", fontSize: "13px", textAlign: "center" }}>No incidents logged yet</div>
+                <div style={{ color: "var(--text-secondary)", fontSize: "13px", textAlign: "center" }}>No incidents logged yet</div>
               )}
             </div>
           </div>
@@ -362,11 +362,11 @@ export default function DashboardPage() {
         {/* Recent Analyses */}
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <h2 style={{ fontSize: "15px", fontWeight: 500, color: "#e2e0f0", fontFamily: "'Outfit', sans-serif" }}>Recent Analyses</h2>
+            <h2 style={{ fontSize: "15px", fontWeight: 500, color: "var(--text-primary)", fontFamily: "'Outfit', sans-serif" }}>Recent Analyses</h2>
             <button
               onClick={() => navigate("/history")}
               className="interactive-button"
-              style={{ background: "none", border: "none", color: "#a78bfa", fontSize: "13px", cursor: "pointer", fontFamily: "'Outfit', sans-serif" }}
+              style={{ background: "none", border: "none", color: "var(--accent)", fontSize: "13px", cursor: "pointer", fontFamily: "'Outfit', sans-serif" }}
             >
               View all →
             </button>
@@ -392,28 +392,28 @@ export default function DashboardPage() {
                     }}
                     onMouseEnter={e => {
                       e.currentTarget.style.borderColor = "rgba(167,139,250,0.35)";
-                      e.currentTarget.style.background = "#141426";
+                      e.currentTarget.style.background = "var(--bg-card-hover)";
                       e.currentTarget.style.boxShadow = "var(--shadow-hover)";
                       e.currentTarget.style.transform = "translateY(-2px)";
                     }}
                     onMouseLeave={e => {
                       e.currentTarget.style.borderColor = "rgba(167,139,250,0.12)";
-                      e.currentTarget.style.background = "#0f0f1a";
+                      e.currentTarget.style.background = "var(--bg-card)";
                       e.currentTarget.style.boxShadow = "none";
                       e.currentTarget.style.transform = "translateY(0)";
                     }}
                   >
                     {/* Left */}
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: "15px", fontWeight: 500, color: "#e2e0f0", fontFamily: "'Outfit', sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <p style={{ fontSize: "15px", fontWeight: 500, color: "var(--text-primary)", fontFamily: "'Outfit', sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {run.run_name || `Run #${runId}`}
                       </p>
-                      <p style={{ fontSize: "12px", color: "#6b6880", fontFamily: "'Outfit', sans-serif" }}>
+                      <p style={{ fontSize: "12px", color: "var(--text-secondary)", fontFamily: "'Outfit', sans-serif" }}>
                         {run.created_at ? new Date(run.created_at).toLocaleString() : "-"}
                       </p>
                       <div style={{ display: "flex", gap: "8px" }}>
                         {[
-                          { label: "Auth", val: getAnomalyCount(run, "auth"), color: "#a78bfa", bg: "rgba(167,139,250,0.08)", border: "rgba(167,139,250,0.2)" },
+                          { label: "Auth", val: getAnomalyCount(run, "auth"), color: "var(--accent)", bg: "rgba(167,139,250,0.08)", border: "rgba(167,139,250,0.2)" },
                           { label: "API", val: getAnomalyCount(run, "api"), color: "#67e8f9", bg: "rgba(103,232,249,0.08)", border: "rgba(103,232,249,0.2)" },
                           { label: "System", val: getAnomalyCount(run, "system"), color: "#fbbf24", bg: "rgba(251,191,36,0.08)", border: "rgba(251,191,36,0.2)" },
                         ].map(p => (
@@ -431,7 +431,7 @@ export default function DashboardPage() {
                     {/* Right */}
                     <div style={{ display: "flex", alignItems: "center", gap: "20px", flexShrink: 0 }}>
                       <div style={{ textAlign: "right" }}>
-                        <p style={{ fontSize: "28px", fontWeight: 700, color: "#a78bfa", lineHeight: 1, fontFamily: "'Outfit', sans-serif" }}>
+                        <p style={{ fontSize: "28px", fontWeight: 700, color: "var(--accent)", lineHeight: 1, fontFamily: "'Outfit', sans-serif" }}>
                           {score.toFixed(1)}
                         </p>
                         <div style={{ marginTop: "6px" }}>
@@ -442,8 +442,8 @@ export default function DashboardPage() {
                         fontSize: "11px", padding: "4px 10px", borderRadius: "20px",
                         fontFamily: "'Outfit', sans-serif",
                         ...(run.status === "failed"
-                          ? { color: "#f87171", background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.25)" }
-                          : { color: "#4ade80", background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)" }
+                          ? { color: "var(--danger)", background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.25)" }
+                          : { color: "var(--success)", background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)" }
                         ),
                       }}>
                         {run.status === "failed" ? "Failed" : "Completed"}
@@ -454,8 +454,8 @@ export default function DashboardPage() {
               })}
             </div>
           ) : (
-            <div style={{ ...card, textAlign: "center", padding: "48px 24px", color: "#6b6880", fontSize: "14px" }}>
-              No analysis runs yet. <span style={{ color: "#a78bfa", cursor: "pointer" }} onClick={() => navigate("/run-analysis")}>Run your first analysis →</span>
+            <div style={{ ...card, textAlign: "center", padding: "48px 24px", color: "var(--text-secondary)", fontSize: "14px" }}>
+              No analysis runs yet. <span style={{ color: "var(--accent)", cursor: "pointer" }} onClick={() => navigate("/run-analysis")}>Run your first analysis →</span>
             </div>
           )}
         </div>
