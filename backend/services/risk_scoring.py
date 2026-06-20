@@ -5,17 +5,19 @@ SYSTEM_WEIGHT = 0.40
 
 def normalize_percentage(anomaly_percentage: float) -> float:
     """
-    Converts anomaly percentage into a 0-100 score.
+    Converts anomaly percentage into a 0-100 score using a gradual linear scale.
 
     Example:
-    2% anomalies  -> 20
-    5% anomalies  -> 50
-    10% anomalies -> 100
+    1% anomalies   -> 5
+    5% anomalies   -> 25
+    10% anomalies  -> 50
+    15% anomalies  -> 75
+    20% anomalies  -> 100
 
     Caps at 100.
     """
 
-    return min(anomaly_percentage * 10, 100)
+    return min(max(anomaly_percentage, 0) * 5, 100)
 
 
 def calculate_base_risk_score(
@@ -45,21 +47,21 @@ def calculate_correlation_bonus(
 
     bonus = 0
 
-    auth_active = auth_percentage > 0
-    api_active = api_percentage > 0
-    system_active = system_percentage > 0
+    auth_active = auth_percentage >= 5
+    api_active = api_percentage >= 5
+    system_active = system_percentage >= 5
 
     if auth_active and api_active:
-        bonus += 10
+        bonus += 5
 
     if auth_active and system_active:
-        bonus += 15
+        bonus += 5
 
     if api_active and system_active:
-        bonus += 10
+        bonus += 5
 
     if auth_active and api_active and system_active:
-        bonus += 15
+        bonus += 10
 
     return bonus
 
@@ -69,6 +71,10 @@ def calculate_risk_score(
     api_percentage: float,
     system_percentage: float
 ) -> float:
+    
+    print("AUTH %:", auth_percentage)
+    print("API %:", api_percentage)
+    print("SYSTEM %:", system_percentage)
 
     base_score = calculate_base_risk_score(
         auth_percentage,
