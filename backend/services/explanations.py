@@ -1,3 +1,13 @@
+def _severity_label(anomaly_percentage: float) -> str:
+    if anomaly_percentage < 5:
+        return "Minor"
+
+    if anomaly_percentage < 15:
+        return "Moderate"
+
+    return "Significant"
+
+
 def generate_explanations(
     auth_percentage: float,
     api_percentage: float,
@@ -8,17 +18,17 @@ def generate_explanations(
 
     if auth_percentage > 0:
         explanations.append(
-            f"Authentication anomalies detected ({auth_percentage:.2f}% anomalous activity)."
+            f"{_severity_label(auth_percentage)} authentication anomalies detected ({auth_percentage:.2f}% anomalous activity)."
         )
 
     if api_percentage > 0:
         explanations.append(
-            f"API activity anomalies detected ({api_percentage:.2f}% anomalous requests)."
+            f"{_severity_label(api_percentage)} API activity anomalies detected ({api_percentage:.2f}% anomalous requests)."
         )
 
     if system_percentage > 0:
         explanations.append(
-            f"System telemetry anomalies detected ({system_percentage:.2f}% anomalous metrics)."
+            f"{_severity_label(system_percentage)} system telemetry anomalies detected ({system_percentage:.2f}% anomalous metrics)."
         )
 
     if (
