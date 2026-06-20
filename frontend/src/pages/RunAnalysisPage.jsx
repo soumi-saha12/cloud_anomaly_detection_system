@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { runAnalysis } from "../services/api";
+import { useEffect, useRef, useState } from "react";
+import { getAnalysisSchema, runAnalysis } from "../services/api";
 import MainLayout from "../layouts/MainLayout";
 import AnalysisOutput from "../components/AnalysisOutput";
 
@@ -26,6 +26,14 @@ const LOG_SLOTS = [
   { key: "apiLog", title: "API Request Logs", hint: "Request/response telemetry" },
   { key: "systemLog", title: "System Metrics Logs", hint: "CPU, memory, latency data" },
 ];
+
+const BACKEND_SOURCE_LABELS = {
+  auth: "Authentication",
+  api: "API",
+  system: "System",
+};
+
+const BACKEND_SOURCE_ORDER = ["auth", "api", "system"];
 
 function generateDefaultRunName() {
   const now = new Date();
@@ -68,6 +76,225 @@ function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function normalizeColumnName(value) {
+  return String(value ?? "").replace(/^\uFEFF/, "").trim();
+}
+
+function parseCsvHeader(text) {
+  const firstLine = String(text ?? "").replace(/^\uFEFF/, "").split(/\r?\n/)[0] ?? "";
+  const headers = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < firstLine.length; i += 1) {
+    const char = firstLine[i];
+
+    if (char === '"') {
+      if (inQuotes && firstLine[i + 1] === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      headers.push(normalizeColumnName(current));
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  headers.push(normalizeColumnName(current));
+  return headers.filter((header) => header.length > 0);
+}
+
+function findDuplicateColumns(columns) {
+  const seen = new Set();
+  const duplicates = [];
+
+  columns.forEach((column) => {
+    if (seen.has(column) && !duplicates.includes(column)) {
+      duplicates.push(column);
+    }
+    seen.add(column);
+  });
+
+  return duplicates;
+}
+
+function buildSchemaValidationError(issues) {
+  return {
+    type: "SCHEMA_VALIDATION",
+    title: "Dataset validation failed.",
+    issues,
+  };
+}
+
+function buildSingleSchemaIssue(sourceType, schema, validationMessage, missingColumns = [], duplicateColumns = []) {
+  return {
+    source_type: sourceType,
+    label: schema?.label || `${sourceType} dataset`,
+    message: validationMessage,
+    missing_columns: missingColumns,
+    duplicate_columns: duplicateColumns,
+  };
+}
+
+async function readCsvHeaders(file) {
+  const text = await file.text();
+  return parseCsvHeader(text);
+}
+
+async function validateFilesAgainstSchemas(files, schemas) {
+  const issues = [];
+
+  for (const sourceType of BACKEND_SOURCE_ORDER) {
+    const file = files[`${sourceType}Log`];
+    const schema = schemas?.[sourceType];
+
+    if (!file) {
+      continue;
+    }
+
+    if (!schema) {
+      issues.push({
+        source_type: sourceType,
+        label: BACKEND_SOURCE_LABELS[sourceType] || sourceType,
+        message: "Schema definition unavailable.",
+        missing_columns: [],
+        duplicate_columns: [],
+      });
+      continue;
+    }
+
+    const headers = await readCsvHeaders(file);
+
+    if (headers.length === 0) {
+      issues.push(buildSingleSchemaIssue(sourceType, schema, "Empty dataset"));
+      continue;
+    }
+
+    const duplicateColumns = findDuplicateColumns(headers);
+    if (duplicateColumns.length > 0) {
+      issues.push(buildSingleSchemaIssue(sourceType, schema, "Duplicate column names", [], duplicateColumns));
+      continue;
+    }
+
+    const missingColumns = schema.required_columns.filter((column) => !headers.includes(column));
+    if (missingColumns.length > 0) {
+      issues.push(buildSingleSchemaIssue(sourceType, schema, "Missing required columns", missingColumns));
+    }
+  }
+
+  return issues;
+}
+
+function downloadCsvTemplate(schema) {
+  const csv = `${schema.required_columns.join(",")}\n`;
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `${schema.label.toLowerCase().replace(/\s+/g, "_")}_template.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function normalizeSchemaResponse(data) {
+  const datasets = data?.datasets || {};
+  const ordered = {};
+
+  BACKEND_SOURCE_ORDER.forEach((sourceType) => {
+    if (datasets[sourceType]) {
+      ordered[sourceType] = datasets[sourceType];
+    }
+  });
+
+  return ordered;
+}
+
+function buildBackendSchemaIssue(data) {
+  const schema = {
+    label: BACKEND_SOURCE_LABELS[data?.source_type] || "Dataset",
+    required_columns: [],
+  };
+
+  return buildSingleSchemaIssue(
+    data?.source_type || "dataset",
+    schema,
+    data?.message || "Missing required columns",
+    Array.isArray(data?.missing_columns) ? data.missing_columns : [],
+    Array.isArray(data?.duplicate_columns) ? data.duplicate_columns : [],
+  );
+}
+
+function SchemaCard({ schema, onDownload }) {
+  const requiredFields = schema.required_columns.join(", ");
+
+  return (
+    <div
+      style={{
+        border: `1px solid ${COLORS.border}`,
+        borderRadius: 14,
+        backgroundColor: COLORS.bg,
+        padding: 18,
+        display: "flex",
+        flexDirection: "column",
+        gap: 14,
+      }}
+    >
+      <div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: COLORS.textPrimary }}>{schema.label}</div>
+        <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 4 }}>
+          Column order does not matter. Extra columns are ignored.
+        </div>
+      </div>
+      <div>
+        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: COLORS.textLabel, marginBottom: 8 }}>
+          Required fields
+        </div>
+        <div
+          style={{
+            margin: 0,
+            color: COLORS.textPrimary,
+            lineHeight: 1.7,
+            fontSize: 12,
+            wordBreak: "break-word",
+            overflowWrap: "anywhere",
+            whiteSpace: "normal",
+          }}
+        >
+          {requiredFields}
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => onDownload(schema)}
+        style={{
+          border: `1px solid ${COLORS.borderActive}`,
+          borderRadius: 10,
+          backgroundColor: "transparent",
+          color: COLORS.accent,
+          padding: "10px 14px",
+          fontSize: 12,
+          fontWeight: 600,
+          cursor: "pointer",
+          alignSelf: "flex-start",
+        }}
+      >
+        Download CSV template
+      </button>
+    </div>
+  );
 }
 
 function Dropzone({ title, hint, file, onSelect, onRemove }) {
@@ -150,13 +377,42 @@ function Dropzone({ title, hint, file, onSelect, onRemove }) {
 export default function RunAnalysisPage() {
   const [runName, setRunName] = useState("");
   const [files, setFiles] = useState({ authLog: null, apiLog: null, systemLog: null });
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [btnHover, setBtnHover] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [schemaDefinitions, setSchemaDefinitions] = useState(null);
+  const [schemaLoading, setSchemaLoading] = useState(true);
 
   const hasAllFiles = files.authLog && files.apiLog && files.systemLog;
   const canSubmit = hasAllFiles && !submitting;
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadSchemaDefinitions() {
+      try {
+        const response = await getAnalysisSchema();
+        if (active) {
+          setSchemaDefinitions(normalizeSchemaResponse(response.data));
+        }
+      } catch {
+        if (active) {
+          setSchemaDefinitions(null);
+        }
+      } finally {
+        if (active) {
+          setSchemaLoading(false);
+        }
+      }
+    }
+
+    loadSchemaDefinitions();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function setFile(key, file) {
     setFiles((prev) => ({ ...prev, [key]: file }));
@@ -164,9 +420,29 @@ export default function RunAnalysisPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError("");
+    setError(null);
 
-    if (!hasAllFiles) { setError("Upload all three log files to begin."); return; }
+    if (!hasAllFiles) {
+      setError({
+        type: "GENERIC",
+        message: "Upload all three log files to begin.",
+      });
+      return;
+    }
+
+    if (!schemaDefinitions) {
+      setError({
+        type: "GENERIC",
+        message: "Required schema information is still loading. Please try again in a moment.",
+      });
+      return;
+    }
+
+    const validationIssues = await validateFilesAgainstSchemas(files, schemaDefinitions);
+    if (validationIssues.length > 0) {
+      setError(buildSchemaValidationError(validationIssues));
+      return;
+    }
 
     setSubmitting(true);
     setAnalysisResult(null);
@@ -180,9 +456,18 @@ export default function RunAnalysisPage() {
 
       const res = await runAnalysis(formData);
       setAnalysisResult(res.data);
-      setSubmitting(false);
     } catch (err) {
-      setError(err.response?.data?.error || "Analysis failed to start. Please try again.");
+      const responseData = err.response?.data;
+
+      if (responseData?.error_type === "SCHEMA_VALIDATION") {
+        setError(buildSchemaValidationError([buildBackendSchemaIssue(responseData)]));
+      } else {
+        setError({
+          type: "GENERIC",
+          message: responseData?.message || responseData?.error || "Analysis failed to start. Please try again.",
+        });
+      }
+    } finally {
       setSubmitting(false);
     }
   }
@@ -223,8 +508,42 @@ export default function RunAnalysisPage() {
               fontSize: 13,
               fontWeight: 400,
               marginBottom: 28,
+              lineHeight: 1.6,
             }}>
-              {error}
+              {error.type === "SCHEMA_VALIDATION" ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ fontWeight: 600 }}>{error.title}</div>
+                  {error.issues?.map((issue) => (
+                    <div key={issue.source_type} style={{ marginTop: 4 }}>
+                      <div style={{ fontWeight: 600 }}>{issue.label}</div>
+                      <div>{issue.message}</div>
+                      {issue.missing_columns?.length > 0 && (
+                        <div style={{ marginTop: 4 }}>
+                          <div style={{ fontWeight: 600, marginBottom: 4 }}>Missing required columns:</div>
+                          <ul style={{ margin: 0, paddingLeft: 20 }}>
+                            {issue.missing_columns.map((column) => (
+                              <li key={column}>{column}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {issue.duplicate_columns?.length > 0 && (
+                        <div style={{ marginTop: 4 }}>
+                          <div style={{ fontWeight: 600, marginBottom: 4 }}>Duplicate columns:</div>
+                          <ul style={{ margin: 0, paddingLeft: 20 }}>
+                            {issue.duplicate_columns.map((column) => (
+                              <li key={column}>{column}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  <div>Please upload a dataset matching the supported schema for each source.</div>
+                </div>
+              ) : (
+                error?.message || error
+              )}
             </div>
           )}
 
@@ -271,6 +590,33 @@ export default function RunAnalysisPage() {
                 onRemove={() => setFile(slot.key, null)}
               />
             ))}
+          </div>
+
+          <div style={{ marginTop: 28 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: COLORS.textLabel, marginBottom: 12 }}>
+              Required CSV Schema
+            </div>
+            {schemaLoading ? (
+              <div style={{ fontSize: 13, color: COLORS.textMuted }}>Loading schema definitions from the backend...</div>
+            ) : schemaDefinitions ? (
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: 16,
+              }}>
+                {BACKEND_SOURCE_ORDER.map((sourceType) => schemaDefinitions[sourceType] && (
+                  <SchemaCard
+                    key={sourceType}
+                    schema={schemaDefinitions[sourceType]}
+                    onDownload={downloadCsvTemplate}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: 13, color: COLORS.danger }}>
+                Unable to load schema definitions right now. Analysis validation will still be enforced by the backend.
+              </div>
+            )}
           </div>
 
           {/* Submit */}
