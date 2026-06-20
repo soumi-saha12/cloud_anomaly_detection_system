@@ -51,6 +51,7 @@ export const getProfile = () => api.get("/auth/profile");
 export const getDashboard = () => api.get("/dashboard");
 
 export const runAnalysis = (formData) => api.post("/analyze", formData);
+export const getAnalysisSchema = () => api.get("/schema");
 
 export const getHistory = () => api.get("/history");
 
