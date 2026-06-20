@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 from flask import Blueprint, current_app, jsonify, request, abort
@@ -15,9 +16,16 @@ from services.prediction_service import (
     predict_auth,
     predict_system,
 )
+from services.schema_validation import (
+    SchemaValidationError,
+    get_required_columns,
+    get_schema_definitions,
+    validate_csv_dataset,
+)
 from services.correlation_engine import generate_incident
 
 analysis_bp = Blueprint("analysis", __name__)
+logger = logging.getLogger(__name__)
 
 
 def _calculate_percentage(total, anomalies):
@@ -39,6 +47,26 @@ def _get_uploaded_files() -> dict[str, FileStorage]:
     }
 
 
+def _log_uploaded_file(source_name: str, file_storage: FileStorage) -> None:
+    file_type = Path(file_storage.filename or "").suffix.lower() or "unknown"
+    logger.info(
+        "Received %s upload; filename=%s content_type=%s file_type=%s",
+        source_name,
+        file_storage.filename or "",
+        file_storage.content_type or "",
+        file_type,
+    )
+
+
+@analysis_bp.get("/schema")
+@jwt_required()
+def get_schema():
+    return jsonify({
+        "success": True,
+        "datasets": get_schema_definitions(),
+    })
+
+
 @analysis_bp.post("/analyze")
 @jwt_required()
 def analyze():
@@ -51,10 +79,18 @@ def analyze():
 
     saved_paths = {}
     for source_name, file_storage in uploaded_files.items():
+        _log_uploaded_file(source_name, file_storage)
         filename = secure_filename(file_storage.filename or f"{source_name}.csv")
         file_path = upload_folder / f"{source_name}_{filename}"
         file_storage.save(file_path)
         saved_paths[source_name] = str(file_path)
+
+    for source_name, file_path in saved_paths.items():
+        validate_csv_dataset(
+            file_path,
+            get_required_columns(source_name),
+            source_type=source_name,
+        )
 
     # Create and commit the initial AnalysisRun record
     run = AnalysisRun(
@@ -110,7 +146,7 @@ def analyze():
             risk_level=incident_data["risk_level"],
             incident_summary=incident_data["incident_summary"],
             explanations=incident_data["explanations"]
-    )   
+        )
         db.session.add(inc)
 
         # Complete run
@@ -120,6 +156,21 @@ def analyze():
         # Return response with run_id
         incident_data["run_id"] = run.id
         return jsonify(incident_data)
+
+    except SchemaValidationError as e:
+        db.session.rollback()
+        logger.warning(
+            "Schema validation failed for analysis run; source_type=%s missing_columns=%s duplicate_columns=%s",
+            e.source_type,
+            e.missing_columns,
+            e.duplicate_columns,
+        )
+        try:
+            run.status = "failed"
+            db.session.commit()
+        except Exception:
+            pass
+        return jsonify(e.to_response()), 400
 
     except Exception as e:
         db.session.rollback()
