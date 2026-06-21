@@ -86,23 +86,6 @@ def analyze():
         file_storage.save(file_path)
         saved_paths[source_name] = str(file_path)
 
-    try:
-        uploaded_filenames = {
-            "auth": uploaded_files["auth"].filename or "auth.csv",
-            "api": uploaded_files["api"].filename or "api.csv",
-            "system": uploaded_files["system"].filename or "system.csv",
-        }
-        validate_analysis_datasets(saved_paths, uploaded_filenames)
-    except SchemaValidationError as e:
-        logger.warning(
-            "Schema validation failed for analysis run; source_type=%s missing_columns=%s duplicate_columns=%s details=%s",
-            e.source_type,
-            e.missing_columns,
-            e.duplicate_columns,
-            e.details,
-        )
-        return jsonify(e.to_response()), 400
-
     # Create and commit the initial AnalysisRun record
     run = AnalysisRun(
         user_id=int(user_id),
@@ -117,6 +100,13 @@ def analyze():
     db.session.commit()
 
     try:
+        uploaded_filenames = {
+            "auth": uploaded_files["auth"].filename or "auth.csv",
+            "api": uploaded_files["api"].filename or "api.csv",
+            "system": uploaded_files["system"].filename or "system.csv",
+        }
+        validate_analysis_datasets(saved_paths, uploaded_filenames)
+
         auth_result = predict_auth(saved_paths["auth"])
         api_result = predict_api(saved_paths["api"])
         system_result = predict_system(saved_paths["system"])

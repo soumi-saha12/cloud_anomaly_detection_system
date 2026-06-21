@@ -173,6 +173,97 @@ class HistoryManagementTests(unittest.TestCase):
         db.session.rollback()  # clear any remaining failed transaction state
         self.assertIsNotNone(AnalysisRun.query.get(run1.id))
 
+    def test_failed_run_in_history(self):
+        u1, _, _ = self._seed_data()
+        token = create_access_token(identity=str(u1.id))
+        headers = {"Authorization": f"Bearer {token}"}
+
+        # Seed a failed run
+        run_failed = AnalysisRun(
+            user_id=u1.id,
+            run_name="failed_run_name",
+            name="Failed Display Name",
+            notes="Failed run notes",
+            status="failed",
+            auth_file_name="auth.csv",
+            api_file_name="api.csv",
+            system_file_name="system.csv"
+        )
+        db.session.add(run_failed)
+        db.session.commit()
+
+        response = self.client.get("/history", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        history = response.get_json()["history"]
+        
+        # Check that we have both runs
+        self.assertEqual(len(history), 2)
+        
+        # Find failed run in response
+        failed_item = next(item for item in history if item["id"] == run_failed.id)
+        self.assertEqual(failed_item["status"], "failed")
+        self.assertIsNone(failed_item["risk_score"])
+        self.assertIsNone(failed_item["risk_level"])
+        self.assertEqual(failed_item["auth_anomalies"], 0)
+        self.assertEqual(failed_item["api_anomalies"], 0)
+        self.assertEqual(failed_item["system_anomalies"], 0)
+
+    def test_failed_run_rename_and_delete(self):
+        u1, _, _ = self._seed_data()
+        token = create_access_token(identity=str(u1.id))
+        headers = {"Authorization": f"Bearer {token}"}
+
+        # Seed a failed run
+        run_failed = AnalysisRun(
+            user_id=u1.id,
+            run_name="failed_run_name",
+            name="Failed Display Name",
+            notes="Failed run notes",
+            status="failed",
+            auth_file_name="auth.csv",
+            api_file_name="api.csv",
+            system_file_name="system.csv"
+        )
+        db.session.add(run_failed)
+        db.session.commit()
+
+        # Rename failed run
+        rename_response = self.client.put(f"/history/{run_failed.id}/rename", json={"name": "Renamed Failed"}, headers=headers)
+        self.assertEqual(rename_response.status_code, 200)
+        
+        db.session.refresh(run_failed)
+        self.assertEqual(run_failed.name, "Renamed Failed")
+
+        # Delete failed run
+        delete_response = self.client.delete(f"/history/{run_failed.id}", headers=headers)
+        self.assertEqual(delete_response.status_code, 200)
+        
+        self.assertIsNone(AnalysisRun.query.get(run_failed.id))
+
+    def test_analyze_route_persists_failed_run_on_validation_error(self):
+        import io
+        import tempfile
+        u1, _, _ = self._seed_data()
+        token = create_access_token(identity=str(u1.id))
+        headers = {"Authorization": f"Bearer {token}"}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            self.app.config["UPLOAD_FOLDER"] = Path(tmp)
+            request_data = {
+                "run_name": "Validation Fail Run",
+                "auth_file": (io.BytesIO(b"invalid_header\n1\n"), "auth.csv"),
+                "api_file": (io.BytesIO(b"invalid_header\n1\n"), "api.csv"),
+                "system_file": (io.BytesIO(b"invalid_header\n1\n"), "system.csv"),
+            }
+
+            response = self.client.post("/analyze", data=request_data, headers=headers, content_type="multipart/form-data")
+            self.assertEqual(response.status_code, 400)
+
+        # Verify that the run is persisted in the database with status = "failed"
+        run = AnalysisRun.query.filter_by(run_name="Validation Fail Run").first()
+        self.assertIsNotNone(run)
+        self.assertEqual(run.status, "failed")
+
 
 if __name__ == "__main__":
     unittest.main()

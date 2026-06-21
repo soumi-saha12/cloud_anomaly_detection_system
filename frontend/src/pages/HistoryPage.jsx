@@ -41,7 +41,7 @@ function mapRun(raw) {
     date: raw.created_at,
     riskScore: raw.risk_score ?? null,
     riskLevel: (raw.risk_level || "UNKNOWN").toUpperCase(),
-    status: raw.status === "failed" ? "failed" : "completed",
+    status: (raw.status === "failed" || raw.status === "processing") ? "failed" : "completed",
     authCount: getAnomalyCount(raw, "auth"),
     apiCount: getAnomalyCount(raw, "api"),
     systemCount: getAnomalyCount(raw, "system"),
@@ -142,7 +142,7 @@ function RunCard({ run, onClick, onRename, onDelete }) {
       </div>
       <div style={styles.cardRight}>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          <div style={styles.riskScore}>{run.riskScore !== null ? run.riskScore.toFixed(2) : "—"}</div>
+          <div style={styles.riskScore}>{run.riskScore !== null ? run.riskScore.toFixed(2) : "--"}</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
             <RiskBadge level={run.riskLevel} />
             <StatusChip status={run.status} />
