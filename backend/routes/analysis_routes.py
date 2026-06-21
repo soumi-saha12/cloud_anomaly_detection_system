@@ -107,6 +107,7 @@ def analyze():
     run = AnalysisRun(
         user_id=int(user_id),
         run_name=run_name.strip() if run_name else None,
+        name=run_name.strip() if run_name else None,
         status="processing",
         auth_file_name=uploaded_files["auth"].filename or "auth.csv",
         api_file_name=uploaded_files["api"].filename or "api.csv",

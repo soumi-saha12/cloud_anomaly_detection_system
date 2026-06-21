@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from extensions import db
 from models.analysis_run import AnalysisRun
@@ -41,6 +41,8 @@ def get_history():
             "id": run.id,
             "run_id": run.id,
             "run_name": run.run_name,
+            "name": run.name or run.run_name,
+            "notes": run.notes,
             "risk_score": run.incident.risk_score if run.incident else None,
             "risk_level": run.incident.risk_level if run.incident else None,
             "status": run.status,
@@ -52,6 +54,61 @@ def get_history():
         })
 
     return jsonify({"history": history_list}), 200
+
+
+@history_bp.put("/history/<int:run_id>/rename")
+@jwt_required()
+def rename_history(run_id):
+    user_id = get_jwt_identity()
+
+    data = request.get_json(silent=True) or {}
+    new_name = data.get("name")
+
+    if not new_name or not isinstance(new_name, str) or not new_name.strip():
+        return jsonify({"error": "Name is required and cannot be empty"}), 400
+
+    new_name = new_name.strip()
+
+    run = AnalysisRun.query.get(run_id)
+    if not run:
+        return jsonify({"error": "Analysis run not found"}), 404
+
+    if run.user_id != int(user_id):
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        run.name = new_name
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Database error while updating name"}), 500
+
+    return jsonify({
+        "message": "Analysis renamed successfully",
+        "run": run.to_dict()
+    }), 200
+
+
+@history_bp.delete("/history/<int:run_id>")
+@jwt_required()
+def delete_history(run_id):
+    user_id = get_jwt_identity()
+
+    run = AnalysisRun.query.get(run_id)
+    if not run:
+        return jsonify({"error": "Analysis run not found"}), 404
+
+    if run.user_id != int(user_id):
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        db.session.delete(run)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e
+
+    return jsonify({"message": "Analysis deleted successfully"}), 200
 
 
 @history_bp.get("/history/<int:run_id>")

@@ -8,6 +8,8 @@ class AnalysisRun(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     run_name = db.Column(db.String(200), nullable=True)
+    name = db.Column(db.String(200), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(20), nullable=False, default="completed")
     risk_score = db.Column(db.Float, nullable=True)
     risk_level = db.Column(db.String(20), nullable=True)
@@ -38,6 +40,8 @@ class AnalysisRun(db.Model):
             "run_id": self.id,
             "user_id": self.user_id,
             "run_name": self.run_name,
+            "name": self.name,
+            "notes": self.notes,
             "status": self.status,
             "risk_score": self.risk_score,
             "risk_level": self.risk_level,
