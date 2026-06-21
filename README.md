@@ -211,27 +211,40 @@ cloud_anomaly_detection_system/
 git clone <your-repository-url>
 cd cloud_anomaly_detection_system
 ```
-
 ---
 
 ## 🖥️ Backend Setup
 
-```bash
+### Windows PowerShell
+
+```powershell
 cd backend
 python -m venv .venv
-source .venv/bin/activate
+.\.venv\Scripts\Activate.ps1
 
-pip install -r ../requirements.txt
-export FLASK_APP=app.py
-export FLASK_ENV=development
+pip install -r ..\requirements.txt
+
+$env:FLASK_APP="app.py"
+$env:FLASK_ENV="development"
+
 flask db upgrade
 python app.py
 ```
 
-If you prefer Gunicorn locally:
+### Linux / macOS
 
 ```bash
-gunicorn --chdir backend --bind 0.0.0.0:5000 app:app
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+
+pip install -r ../requirements.txt
+
+export FLASK_APP=app.py
+export FLASK_ENV=development
+
+flask db upgrade
+python app.py
 ```
 
 ---

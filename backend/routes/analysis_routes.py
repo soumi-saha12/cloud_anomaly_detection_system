@@ -85,12 +85,21 @@ def analyze():
         file_storage.save(file_path)
         saved_paths[source_name] = str(file_path)
 
-    for source_name, file_path in saved_paths.items():
-        validate_csv_dataset(
-            file_path,
-            get_required_columns(source_name),
-            source_type=source_name,
+    try:
+        for source_name, file_path in saved_paths.items():
+            validate_csv_dataset(
+                file_path,
+                get_required_columns(source_name),
+                source_type=source_name,
+            )
+    except SchemaValidationError as e:
+        logger.warning(
+            "Schema validation failed for analysis run; source_type=%s missing_columns=%s duplicate_columns=%s",
+            e.source_type,
+            e.missing_columns,
+            e.duplicate_columns,
         )
+        return jsonify(e.to_response()), 400
 
     # Create and commit the initial AnalysisRun record
     run = AnalysisRun(
