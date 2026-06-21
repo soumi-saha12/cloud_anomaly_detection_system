@@ -15,9 +15,9 @@ const SOURCE_LABELS = { auth: "Authentication", api: "API Activity", system: "Sy
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getRiskLevel(score) {
-  if (score >= 80) return "CRITICAL";
-  if (score >= 60) return "HIGH";
-  if (score >= 35) return "MEDIUM";
+  if (score >= 88) return "CRITICAL";
+  if (score >= 75) return "HIGH";
+  if (score >= 40) return "MEDIUM";
   if (score > 0)   return "LOW";
   return "UNKNOWN";
 }

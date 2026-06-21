@@ -100,14 +100,15 @@ def generate_risk_level(
     risk_score: float
 ) -> str:
 
-    if risk_score < 25:
+    if risk_score < 40:
         return "LOW"
 
-    elif risk_score < 50:
+    elif risk_score < 75:
         return "MEDIUM"
 
-    elif risk_score < 75:
+    elif risk_score < 88:
         return "HIGH"
 
     else:
         return "CRITICAL"
+
