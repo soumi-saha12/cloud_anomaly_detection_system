@@ -21,6 +21,7 @@ from services.schema_validation import (
     get_required_columns,
     get_schema_definitions,
     validate_csv_dataset,
+    validate_analysis_datasets,
 )
 from services.correlation_engine import generate_incident
 
@@ -85,26 +86,11 @@ def analyze():
         file_storage.save(file_path)
         saved_paths[source_name] = str(file_path)
 
-    try:
-        for source_name, file_path in saved_paths.items():
-            validate_csv_dataset(
-                file_path,
-                get_required_columns(source_name),
-                source_type=source_name,
-            )
-    except SchemaValidationError as e:
-        logger.warning(
-            "Schema validation failed for analysis run; source_type=%s missing_columns=%s duplicate_columns=%s",
-            e.source_type,
-            e.missing_columns,
-            e.duplicate_columns,
-        )
-        return jsonify(e.to_response()), 400
-
     # Create and commit the initial AnalysisRun record
     run = AnalysisRun(
         user_id=int(user_id),
         run_name=run_name.strip() if run_name else None,
+        name=run_name.strip() if run_name else None,
         status="processing",
         auth_file_name=uploaded_files["auth"].filename or "auth.csv",
         api_file_name=uploaded_files["api"].filename or "api.csv",
@@ -114,6 +100,13 @@ def analyze():
     db.session.commit()
 
     try:
+        uploaded_filenames = {
+            "auth": uploaded_files["auth"].filename or "auth.csv",
+            "api": uploaded_files["api"].filename or "api.csv",
+            "system": uploaded_files["system"].filename or "system.csv",
+        }
+        validate_analysis_datasets(saved_paths, uploaded_filenames)
+
         auth_result = predict_auth(saved_paths["auth"])
         api_result = predict_api(saved_paths["api"])
         system_result = predict_system(saved_paths["system"])
@@ -169,10 +162,11 @@ def analyze():
     except SchemaValidationError as e:
         db.session.rollback()
         logger.warning(
-            "Schema validation failed for analysis run; source_type=%s missing_columns=%s duplicate_columns=%s",
+            "Schema validation failed for analysis run; source_type=%s missing_columns=%s duplicate_columns=%s details=%s",
             e.source_type,
             e.missing_columns,
             e.duplicate_columns,
+            e.details,
         )
         try:
             run.status = "failed"

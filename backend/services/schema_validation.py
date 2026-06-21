@@ -89,12 +89,14 @@ class SchemaValidationError(ValueError):
         source_type: str | None = None,
         missing_columns: list[str] | None = None,
         duplicate_columns: list[str] | None = None,
+        details: dict | None = None,
     ):
         super().__init__(message)
         self.message = message
         self.source_type = source_type
         self.missing_columns = missing_columns or []
         self.duplicate_columns = duplicate_columns or []
+        self.details = details or {}
 
     def to_response(self) -> dict:
         payload = {
@@ -111,6 +113,9 @@ class SchemaValidationError(ValueError):
 
         if self.duplicate_columns:
             payload["duplicate_columns"] = self.duplicate_columns
+
+        if self.details:
+            payload["details"] = self.details
 
         return payload
 
@@ -146,6 +151,7 @@ def validate_csv_dataset(
     required_columns: list[str],
     *,
     source_type: str,
+    raise_on_nan: bool = True,
 ) -> pd.DataFrame:
     header = _read_csv_header(csv_path)
     duplicate_columns = _find_duplicate_columns(header)
@@ -204,4 +210,57 @@ def validate_csv_dataset(
         list(data.columns),
     )
 
-    return data.loc[:, required_columns].copy()
+    clean_data = data.loc[:, required_columns].copy()
+
+    if raise_on_nan:
+        nan_count = int(clean_data.isna().sum().sum())
+        if nan_count > 0:
+            logger.warning(
+                "%s dataset validation failed; contains missing values (NaN) count=%d",
+                source_type,
+                nan_count,
+            )
+            raise SchemaValidationError(
+                "Dataset contains missing values.",
+                source_type=source_type,
+                details={"missing_values": nan_count},
+            )
+
+    return clean_data
+
+
+def validate_analysis_datasets(
+    saved_paths: dict[str, str],
+    uploaded_filenames: dict[str, str],
+) -> dict[str, pd.DataFrame]:
+    """
+    Centralized validation for all uploaded datasets in an analysis run.
+    Ensures schemas are correct first, then checks all datasets for NaN values.
+    """
+    datasets = {}
+    # First check schema (structure, missing columns, empty, duplicates) for all files.
+    for source_name, file_path in saved_paths.items():
+        datasets[source_name] = validate_csv_dataset(
+            file_path,
+            get_required_columns(source_name),
+            source_type=source_name,
+            raise_on_nan=False,
+        )
+
+    # Check for NaN values across all datasets
+    nan_details = {}
+    for source_name, df in datasets.items():
+        nan_count = int(df.isna().sum().sum())
+        if nan_count > 0:
+            filename = uploaded_filenames.get(source_name, f"{source_name}.csv")
+            nan_details[filename] = {
+                "missing_values": nan_count
+            }
+
+    if nan_details:
+        raise SchemaValidationError(
+            "Dataset contains missing values.",
+            details=nan_details,
+        )
+
+    return datasets

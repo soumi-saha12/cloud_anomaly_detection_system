@@ -54,6 +54,8 @@ export const runAnalysis = (formData) => api.post("/analyze", formData);
 export const getAnalysisSchema = () => api.get("/schema");
 
 export const getHistory = () => api.get("/history");
+export const renameAnalysis = (id, name) => api.put(`/history/${id}/rename`, { name });
+export const deleteAnalysis = (id) => api.delete(`/history/${id}`);
 
 export const getIncidents = () => api.get("/incidents");
 export const getIncident = (incidentId) => api.get(`/incidents/${incidentId}`);
