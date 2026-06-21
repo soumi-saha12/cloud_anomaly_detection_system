@@ -1,7 +1,10 @@
+import logging
 import pandas as pd
 
 from services.model_loader import get_model
 from services.schema_validation import get_required_columns, validate_csv_dataset
+
+logger = logging.getLogger(__name__)
 
 
 def _predict_with_models(csv_path, model_prefix, required_columns, use_scaler=False):
@@ -25,11 +28,35 @@ def _predict_with_models(csv_path, model_prefix, required_columns, use_scaler=Fa
             raise ValueError(f"Missing scaler for {model_prefix}")
         features = pd.DataFrame(scaler.transform(features), columns=features.columns)
 
+    logger.info(
+        "Predicting anomalies for %s; file=%s shape=%s columns=%s",
+        model_prefix,
+        csv_path,
+        features.shape,
+        list(features.columns),
+    )
+    logger.info(
+        "First few rows of %s features:\n%s",
+        model_prefix,
+        features.head(3).to_dict(orient="records"),
+    )
+
     if_predictions = isolation_forest.predict(features)
     lof_predictions = local_outlier_factor.predict(features)
 
     anomaly_mask = (if_predictions == -1) | (lof_predictions == -1)
     anomaly_count = int(anomaly_mask.sum())
+
+    if_anomaly_count = int((if_predictions == -1).sum())
+    lof_anomaly_count = int((lof_predictions == -1).sum())
+
+    logger.info(
+        "Prediction completed for %s; Isolation Forest anomaly count=%d, LOF anomaly count=%d, Final ensemble anomaly count=%d",
+        model_prefix,
+        if_anomaly_count,
+        lof_anomaly_count,
+        anomaly_count,
+    )
 
     return {
         "total": int(len(data)),
@@ -38,7 +65,7 @@ def _predict_with_models(csv_path, model_prefix, required_columns, use_scaler=Fa
 
 
 def predict_auth(csv_path):
-    return _predict_with_models(csv_path, "auth", get_required_columns("auth"), use_scaler=True)
+    return _predict_with_models(csv_path, "auth", get_required_columns("auth"), use_scaler=False)
 
 
 def predict_api(csv_path):
