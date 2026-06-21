@@ -21,6 +21,7 @@ from services.schema_validation import (
     get_required_columns,
     get_schema_definitions,
     validate_csv_dataset,
+    validate_analysis_datasets,
 )
 from services.correlation_engine import generate_incident
 
@@ -86,18 +87,19 @@ def analyze():
         saved_paths[source_name] = str(file_path)
 
     try:
-        for source_name, file_path in saved_paths.items():
-            validate_csv_dataset(
-                file_path,
-                get_required_columns(source_name),
-                source_type=source_name,
-            )
+        uploaded_filenames = {
+            "auth": uploaded_files["auth"].filename or "auth.csv",
+            "api": uploaded_files["api"].filename or "api.csv",
+            "system": uploaded_files["system"].filename or "system.csv",
+        }
+        validate_analysis_datasets(saved_paths, uploaded_filenames)
     except SchemaValidationError as e:
         logger.warning(
-            "Schema validation failed for analysis run; source_type=%s missing_columns=%s duplicate_columns=%s",
+            "Schema validation failed for analysis run; source_type=%s missing_columns=%s duplicate_columns=%s details=%s",
             e.source_type,
             e.missing_columns,
             e.duplicate_columns,
+            e.details,
         )
         return jsonify(e.to_response()), 400
 
@@ -169,10 +171,11 @@ def analyze():
     except SchemaValidationError as e:
         db.session.rollback()
         logger.warning(
-            "Schema validation failed for analysis run; source_type=%s missing_columns=%s duplicate_columns=%s",
+            "Schema validation failed for analysis run; source_type=%s missing_columns=%s duplicate_columns=%s details=%s",
             e.source_type,
             e.missing_columns,
             e.duplicate_columns,
+            e.details,
         )
         try:
             run.status = "failed"

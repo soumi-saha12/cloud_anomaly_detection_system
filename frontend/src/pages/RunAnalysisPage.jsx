@@ -460,7 +460,17 @@ export default function RunAnalysisPage() {
       const responseData = err.response?.data;
 
       if (responseData?.error_type === "SCHEMA_VALIDATION") {
-        setError(buildSchemaValidationError([buildBackendSchemaIssue(responseData)]));
+        if (responseData?.message === "Dataset contains missing values.") {
+          setError({
+            type: "SCHEMA_VALIDATION",
+            title: "Dataset validation failed.",
+            isMissingValues: true,
+            message: "One or more uploaded datasets contain missing values (NaN). Please clean the dataset or use a preprocessing pipeline before analysis.",
+            details: responseData.details || {},
+          });
+        } else {
+          setError(buildSchemaValidationError([buildBackendSchemaIssue(responseData)]));
+        }
       } else {
         setError({
           type: "GENERIC",
@@ -513,33 +523,52 @@ export default function RunAnalysisPage() {
               {error.type === "SCHEMA_VALIDATION" ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   <div style={{ fontWeight: 600 }}>{error.title}</div>
-                  {error.issues?.map((issue) => (
-                    <div key={issue.source_type} style={{ marginTop: 4 }}>
-                      <div style={{ fontWeight: 600 }}>{issue.label}</div>
-                      <div>{issue.message}</div>
-                      {issue.missing_columns?.length > 0 && (
+                  {error.isMissingValues ? (
+                    <>
+                      <div>{error.message}</div>
+                      {error.details && (
                         <div style={{ marginTop: 4 }}>
-                          <div style={{ fontWeight: 600, marginBottom: 4 }}>Missing required columns:</div>
                           <ul style={{ margin: 0, paddingLeft: 20 }}>
-                            {issue.missing_columns.map((column) => (
-                              <li key={column}>{column}</li>
+                            {Object.entries(error.details).map(([filename, detail]) => (
+                              <li key={filename}>
+                                <span style={{ fontWeight: 600 }}>{filename}</span>: {detail.missing_values} missing values
+                              </li>
                             ))}
                           </ul>
                         </div>
                       )}
-                      {issue.duplicate_columns?.length > 0 && (
-                        <div style={{ marginTop: 4 }}>
-                          <div style={{ fontWeight: 600, marginBottom: 4 }}>Duplicate columns:</div>
-                          <ul style={{ margin: 0, paddingLeft: 20 }}>
-                            {issue.duplicate_columns.map((column) => (
-                              <li key={column}>{column}</li>
-                            ))}
-                          </ul>
+                    </>
+                  ) : (
+                    <>
+                      {error.issues?.map((issue) => (
+                        <div key={issue.source_type} style={{ marginTop: 4 }}>
+                          <div style={{ fontWeight: 600 }}>{issue.label}</div>
+                          <div>{issue.message}</div>
+                          {issue.missing_columns?.length > 0 && (
+                            <div style={{ marginTop: 4 }}>
+                              <div style={{ fontWeight: 600, marginBottom: 4 }}>Missing required columns:</div>
+                              <ul style={{ margin: 0, paddingLeft: 20 }}>
+                                {issue.missing_columns.map((column) => (
+                                  <li key={column}>{column}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {issue.duplicate_columns?.length > 0 && (
+                            <div style={{ marginTop: 4 }}>
+                              <div style={{ fontWeight: 600, marginBottom: 4 }}>Duplicate columns:</div>
+                              <ul style={{ margin: 0, paddingLeft: 20 }}>
+                                {issue.duplicate_columns.map((column) => (
+                                  <li key={column}>{column}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  ))}
-                  <div>Please upload a dataset matching the supported schema for each source.</div>
+                      ))}
+                      <div>Please upload a dataset matching the supported schema for each source.</div>
+                    </>
+                  )}
                 </div>
               ) : (
                 error?.message || error
