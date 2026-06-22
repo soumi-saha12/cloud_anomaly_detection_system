@@ -1,0 +1,6 @@
+PCA Variance Analysis
+====================
+
+PC1 Variance Ratio: 0.683865
+PC2 Variance Ratio: 0.255052
+Total Variance Captured: 93.89%
