@@ -83,4 +83,4 @@ PYTHONPATH=backend FLASK_APP=backend/app.py flask db upgrade -d backend/migratio
 
 1. Deploy the React project folder to Vercel.
 2. In the Vercel dashboard, configure the environment variable:
-   * `REACT_APP_API_URL` = `https://<your-backend-app>.onrender.com`
+   * `VITE_API_URL` = `https://<your-backend-app>.onrender.com`

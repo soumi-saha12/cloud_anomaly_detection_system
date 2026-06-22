@@ -1,9 +1,18 @@
 import axios from "axios";
 
 const TOKEN_KEY = "access_token";
+
+function normalizeBaseURL(url) {
+  return url?.replace(/\/$/, "");
+}
+
 const baseURL = import.meta.env.DEV
   ? "/api"
-  : import.meta.env.VITE_API_BASE_URL ?? "/api";
+  : normalizeBaseURL(
+      import.meta.env.VITE_API_URL ??
+        import.meta.env.VITE_API_BASE_URL ??
+        "https://cloud-anomaly-detection-system.onrender.com",
+    );
 
 const api = axios.create({
   baseURL,
