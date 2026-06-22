@@ -27,6 +27,10 @@ class Config:
         db_url = db_url.replace("postgres://", "postgresql://", 1)
     SQLALCHEMY_DATABASE_URI = db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+    }
 
     # JWT settings
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", SECRET_KEY)
