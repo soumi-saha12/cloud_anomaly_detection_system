@@ -1,3 +1,6 @@
+import logging
+import time
+
 from services.risk_scoring import (
     calculate_risk_score,
     generate_risk_level
@@ -7,6 +10,8 @@ from services.explanations import (
     generate_explanations,
     generate_incident_summary
 )
+
+logger = logging.getLogger(__name__)
 
 
 def calculate_source_metrics(
@@ -38,6 +43,7 @@ def generate_incident(
     system_total: int,
     system_anomalies: int
 ):
+    started_at = time.perf_counter()
 
     auth_metrics = calculate_source_metrics(
         auth_total,
@@ -75,6 +81,14 @@ def generate_incident(
         auth_anomalies,
         api_anomalies,
         system_anomalies
+    )
+
+    elapsed_ms = (time.perf_counter() - started_at) * 1000
+    logger.info(
+        "Correlation engine completed; risk_score=%.2f risk_level=%s elapsed_ms=%.2f",
+        risk_score,
+        risk_level,
+        elapsed_ms,
     )
 
     return {

@@ -1,4 +1,5 @@
 import logging
+import time
 from pathlib import Path
 
 from flask import Blueprint, current_app, jsonify, request, abort
@@ -18,9 +19,7 @@ from services.prediction_service import (
 )
 from services.schema_validation import (
     SchemaValidationError,
-    get_required_columns,
     get_schema_definitions,
-    validate_csv_dataset,
     validate_analysis_datasets,
 )
 from services.correlation_engine import generate_incident
@@ -59,6 +58,11 @@ def _log_uploaded_file(source_name: str, file_storage: FileStorage) -> None:
     )
 
 
+def _log_timing(stage: str, started_at: float) -> None:
+    elapsed_ms = (time.perf_counter() - started_at) * 1000
+    logger.info("Analysis timing; stage=%s elapsed_ms=%.2f", stage, elapsed_ms)
+
+
 @analysis_bp.get("/schema")
 @jwt_required()
 def get_schema():
@@ -71,6 +75,7 @@ def get_schema():
 @analysis_bp.post("/analyze")
 @jwt_required()
 def analyze():
+    request_started_at = time.perf_counter()
     user_id = get_jwt_identity()
     run_name = request.form.get("run_name")
     uploaded_files = _get_uploaded_files()
@@ -85,8 +90,10 @@ def analyze():
         file_path = upload_folder / f"{source_name}_{filename}"
         file_storage.save(file_path)
         saved_paths[source_name] = str(file_path)
+    _log_timing("csv_upload_save", request_started_at)
 
     # Create and commit the initial AnalysisRun record
+    db_write_started_at = time.perf_counter()
     run = AnalysisRun(
         user_id=int(user_id),
         run_name=run_name.strip() if run_name else None,
@@ -98,18 +105,29 @@ def analyze():
     )
     db.session.add(run)
     db.session.commit()
+    _log_timing("initial_run_db_write", db_write_started_at)
 
     try:
+        validation_started_at = time.perf_counter()
         uploaded_filenames = {
             "auth": uploaded_files["auth"].filename or "auth.csv",
             "api": uploaded_files["api"].filename or "api.csv",
             "system": uploaded_files["system"].filename or "system.csv",
         }
-        validate_analysis_datasets(saved_paths, uploaded_filenames)
+        validated_datasets = validate_analysis_datasets(saved_paths, uploaded_filenames)
+        _log_timing("validation", validation_started_at)
 
-        auth_result = predict_auth(saved_paths["auth"])
-        api_result = predict_api(saved_paths["api"])
-        system_result = predict_system(saved_paths["system"])
+        auth_predict_started_at = time.perf_counter()
+        auth_result = predict_auth(validated_datasets["auth"])
+        _log_timing("auth_model_prediction", auth_predict_started_at)
+
+        api_predict_started_at = time.perf_counter()
+        api_result = predict_api(validated_datasets["api"])
+        _log_timing("api_model_prediction", api_predict_started_at)
+
+        system_predict_started_at = time.perf_counter()
+        system_result = predict_system(validated_datasets["system"])
+        _log_timing("system_model_prediction", system_predict_started_at)
 
         # Save source results
         sources = [
@@ -129,6 +147,7 @@ def analyze():
             db.session.add(src_res)
 
         # Generate correlated incident
+        correlation_started_at = time.perf_counter()
         incident_data = generate_incident(
             auth_total=auth_result["total"],
             auth_anomalies=auth_result["anomalies"],
@@ -137,6 +156,7 @@ def analyze():
             system_total=system_result["total"],
             system_anomalies=system_result["anomalies"],
         )
+        _log_timing("correlation_engine", correlation_started_at)
 
         # Save Incident record
         inc = Incident(
@@ -152,8 +172,11 @@ def analyze():
         db.session.add(inc)
 
         # Complete run
+        db_commit_started_at = time.perf_counter()
         run.status = "completed"
         db.session.commit()
+        _log_timing("final_db_write", db_commit_started_at)
+        _log_timing("total_request", request_started_at)
 
         # Return response with run_id
         incident_data["run_id"] = run.id

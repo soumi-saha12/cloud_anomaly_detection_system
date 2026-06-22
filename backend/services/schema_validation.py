@@ -1,5 +1,6 @@
 import csv
 import logging
+import time
 from pathlib import Path
 from typing import Iterable
 
@@ -152,14 +153,17 @@ def validate_csv_dataset(
     *,
     source_type: str,
     raise_on_nan: bool = True,
-) -> pd.DataFrame:
+    ) -> pd.DataFrame:
+    started_at = time.perf_counter()
     header = _read_csv_header(csv_path)
     duplicate_columns = _find_duplicate_columns(header)
+    header_elapsed_ms = (time.perf_counter() - started_at) * 1000
 
     logger.info(
-        "Validating %s dataset schema; uploaded columns=%s",
+        "Validating %s dataset schema; uploaded columns=%s header_read_ms=%.2f",
         source_type,
         header,
+        header_elapsed_ms,
     )
 
     if duplicate_columns:
@@ -174,8 +178,23 @@ def validate_csv_dataset(
             duplicate_columns=duplicate_columns,
         )
 
+    missing_columns = [column for column in required_columns if column not in header]
+
+    if missing_columns:
+        logger.warning(
+            "%s dataset schema validation failed; missing columns=%s",
+            source_type,
+            missing_columns,
+        )
+        raise SchemaValidationError(
+            "Missing required columns",
+            source_type=source_type,
+            missing_columns=missing_columns,
+        )
+
+    read_started_at = time.perf_counter()
     try:
-        data = pd.read_csv(csv_path)
+        data = pd.read_csv(csv_path, usecols=required_columns)
     except pd.errors.EmptyDataError as exc:
         logger.warning("%s dataset schema validation failed; dataset is empty", source_type)
         raise SchemaValidationError("Empty dataset", source_type=source_type) from exc
@@ -190,19 +209,14 @@ def validate_csv_dataset(
         logger.warning("%s dataset schema validation failed; dataset is empty", source_type)
         raise SchemaValidationError("Empty dataset", source_type=source_type)
 
-    missing_columns = [column for column in required_columns if column not in data.columns]
-
-    if missing_columns:
-        logger.warning(
-            "%s dataset schema validation failed; missing columns=%s",
-            source_type,
-            missing_columns,
-        )
-        raise SchemaValidationError(
-            "Missing required columns",
-            source_type=source_type,
-            missing_columns=missing_columns,
-        )
+    read_elapsed_ms = (time.perf_counter() - read_started_at) * 1000
+    logger.info(
+        "%s dataset CSV loaded; rows=%d cols=%d read_ms=%.2f",
+        source_type,
+        len(data),
+        len(data.columns),
+        read_elapsed_ms,
+    )
 
     logger.info(
         "%s dataset schema validation passed; validation columns=%s",
@@ -210,6 +224,7 @@ def validate_csv_dataset(
         list(data.columns),
     )
 
+    preprocess_started_at = time.perf_counter()
     clean_data = data.loc[:, required_columns].copy()
 
     if raise_on_nan:
@@ -225,6 +240,15 @@ def validate_csv_dataset(
                 source_type=source_type,
                 details={"missing_values": nan_count},
             )
+
+    preprocess_elapsed_ms = (time.perf_counter() - preprocess_started_at) * 1000
+    logger.info(
+        "%s dataset preprocessing complete; rows=%d cols=%d preprocess_ms=%.2f",
+        source_type,
+        len(clean_data),
+        len(clean_data.columns),
+        preprocess_elapsed_ms,
+    )
 
     return clean_data
 

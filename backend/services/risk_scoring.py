@@ -1,6 +1,10 @@
+import logging
+
 AUTH_WEIGHT = 0.35
 API_WEIGHT = 0.25
 SYSTEM_WEIGHT = 0.40
+
+logger = logging.getLogger(__name__)
 
 
 def normalize_percentage(anomaly_percentage: float) -> float:
@@ -71,11 +75,6 @@ def calculate_risk_score(
     api_percentage: float,
     system_percentage: float
 ) -> float:
-    
-    print("AUTH %:", auth_percentage)
-    print("API %:", api_percentage)
-    print("SYSTEM %:", system_percentage)
-
     base_score = calculate_base_risk_score(
         auth_percentage,
         api_percentage,
@@ -91,6 +90,16 @@ def calculate_risk_score(
     final_score = min(
         round(base_score + correlation_bonus, 2),
         100
+    )
+
+    logger.debug(
+        "Risk scoring computed; auth_pct=%.2f api_pct=%.2f system_pct=%.2f base_score=%.2f bonus=%.2f final_score=%.2f",
+        auth_percentage,
+        api_percentage,
+        system_percentage,
+        base_score,
+        correlation_bonus,
+        final_score,
     )
 
     return final_score
@@ -111,4 +120,3 @@ def generate_risk_level(
 
     else:
         return "CRITICAL"
-
