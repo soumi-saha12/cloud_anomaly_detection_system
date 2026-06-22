@@ -21,11 +21,7 @@
 
 ### Production URLs
 
-- Frontend: [Add Vercel URL Here]
-- Backend API: [Add Render API URL Here]
-- Database: `Render Managed Database`
-
-> Live deployment links will be added after final production deployment.
+> Live demo: https://cloud-anomaly-detection-system.vercel.app
 
 ### Deployment Architecture
 
