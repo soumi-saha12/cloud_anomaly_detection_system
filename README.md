@@ -119,6 +119,7 @@ flowchart TD
 
 ---
 
+
 ## ✨ Feature Matrix
 
 | Area | Capability | Impact |
@@ -398,15 +399,32 @@ to identify suspicious activity patterns, abnormal resource behavior, and potent
 
 ### Dashboard
 
-![Dashboard Placeholder](./screenshots/dashboard.png)
+<img width="1600" height="900" alt="WhatsApp Image 2026-06-22 at 11 34 57 PM" src="https://github.com/user-attachments/assets/4d5432a8-bcf4-4dc8-a6b6-721fd1ac7bcf" />
+
 
 ### Run Analysis
 
-![Run Analysis Placeholder](./screenshots/run-analysis.png)
+
+<img width="1600" height="1041" alt="WhatsApp Image 2026-06-20 at 11 45 04 PM" src="https://github.com/user-attachments/assets/ffdc32d8-5161-4f48-adde-d3b9ee1ef376" />
+
 
 ### History and Incidents
 
-![History Placeholder](./screenshots/history.png)
+<img width="1600" height="900" alt="WhatsApp Image 2026-06-22 at 11 39 11 PM" src="https://github.com/user-attachments/assets/0cdfbe1c-5191-4a39-838f-9b25662f1e4c" />
+
+## Demo Video
+
+Watch the complete system demonstration:
+
+
+
+
+https://github.com/user-attachments/assets/6b2856d6-ea17-408a-bcef-88d0e459f9b0
+
+
+
+
+
 
 ---
 
