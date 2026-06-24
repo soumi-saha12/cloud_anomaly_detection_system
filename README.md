@@ -452,4 +452,16 @@ https://github.com/user-attachments/assets/6b2856d6-ea17-408a-bcef-88d0e459f9b0
 
 ## 📄 License
 
-This project is currently provided without an explicit license. Add one before public distribution if needed.
+Copyright (c) 2026 Cloud Anomaly Detection System Team. All rights reserved.
+
+This software and its associated documentation files are the collective intellectual property of the authors. 
+
+By accessing this public repository, users are granted permission to view and fork the code strictly within the GitHub platform, as permitted by GitHub's Terms of Service. 
+
+However, NO permission is granted to:
+1. Copy, redistribute, or mirror this codebase outside of this specific GitHub network.
+2. Modify or create derivative works for the purpose of personal, commercial, or uncredited use.
+3. Utilize this source code, logic, or architecture in any academic publications, resumes, or portfolios without explicit, written consent from all copyright holders.
+
+CRITICAL NOTICE FOR ACADEMIC REVIEWERS:
+This codebase is actively tied to an upcoming, peer-reviewed research manuscript currently undergoing submission. Automated plagiarism screening tools (including Turnitin, iThenticate, and publisher-specific engines) actively cross-reference this repository. Unauthorized use or reproduction will trigger immediate academic integrity flags.
