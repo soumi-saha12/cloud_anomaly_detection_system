@@ -395,7 +395,9 @@ to identify suspicious activity patterns, abnormal resource behavior, and potent
 
 ### Landing Page
 
-![Landing Page Placeholder](./screenshots/landing-page.png)
+<img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/d4ed62a5-2294-405e-b89a-7fc27b50b738" />
+
+
 
 ### Dashboard
 
