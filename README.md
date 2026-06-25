@@ -205,7 +205,7 @@ cloud_anomaly_detection_system/
 ### Clone the repository
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/soumi-saha12/cloud_anomaly_detection_system.git
 cd cloud_anomaly_detection_system
 ```
 ---
